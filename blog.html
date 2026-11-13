@@ -1,0 +1,197 @@
+﻿<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<style id="fshBoot">html.fsh-boot body,html.fsh-wait body{visibility:hidden}html.fsh-boot::before{content:"";position:fixed;inset:0;z-index:2147483646;background:#2A231C}html.fsh-boot::after{content:"";position:fixed;z-index:2147483647;left:50%;top:50%;width:54px;height:54px;margin:-27px;border-radius:50%;border:3px solid rgba(239,176,106,.25);border-top-color:#EFB06A;animation:fshspin .7s linear infinite}@keyframes fshspin{to{transform:rotate(360deg)}}html.fsh-boot-off body{visibility:visible}html.fsh-boot-off::before,html.fsh-boot-off::after{opacity:0;transition:opacity .25s ease;pointer-events:none}</style><script>try{var h=document.documentElement;if(sessionStorage.getItem("fsh_seen")!=="1"){h.classList.add("fsh-boot");setTimeout(function(){h.classList.remove("fsh-boot")},4000);}else{h.classList.add("fsh-wait");setTimeout(function(){h.classList.remove("fsh-wait")},1500);}}catch(e){}</script>
+
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://*.clarity.ms https://connect.facebook.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://*.clarity.ms https://c.bing.com https://connect.facebook.net https://www.facebook.com; frame-src https://www.youtube-nocookie.com; base-uri 'self'; object-src 'none'; form-action 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Блог — Фірмова Штора</title>
+<meta name="description" content="Блог «Фірмової Штори»: нові тканини та системи, зміни в роботі й поради щодо вибору та заміру рулонних штор.">
+<link rel="canonical" href="https://www.firmova-shtora.com.ua/blog.html">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="uk_UA">
+<meta property="og:site_name" content="Фірмова Штора">
+<meta property="og:title" content="Блог — Фірмова Штора">
+<meta property="og:description" content="Блог «Фірмової Штори»: нові тканини та системи, зміни в роботі й поради щодо вибору та заміру рулонних штор.">
+<meta property="og:url" content="https://www.firmova-shtora.com.ua/blog.html">
+<meta property="og:image" content="https://www.firmova-shtora.com.ua/assets/work-wood-cream.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#F2F1ED">
+<link rel="icon" href="favicon.ico?v=317" sizes="any">
+<link rel="icon" href="assets/favicon-32.png?v=317" type="image/png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=317">
+<link rel="preload" href="assets/fonts/manrope-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/inter-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+<script>
+try{document.documentElement.setAttribute("data-theme",
+  localStorage.getItem("fsh_theme")||(matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light"))}catch(e){}</script>
+<link rel="stylesheet" href="assets/fonts.css?v=317">
+<link rel="stylesheet" href="assets/loader.css?v=317">
+<link rel="stylesheet" href="assets/style.css?v=317">
+<link rel="stylesheet" href="assets/v4.css?v=317">
+<link rel="stylesheet" href="assets/theme.css?v=317">
+<link rel="stylesheet" href="assets/final.css?v=317">
+<style>
+  .page-head{padding:132px 0 40px;background:transparent}
+  .news-rows{padding:52px 0 90px;display:grid;gap:32px}
+
+  .nrow{display:grid;grid-template-columns:1fr 1.05fr;gap:0;border:1px solid var(--line);
+    border-radius:26px;overflow:hidden;background:var(--card);box-shadow:var(--sh-s);transition:.25s}
+  .nrow:hover{border-color:var(--terra);box-shadow:0 20px 46px -30px rgba(19,37,28,.4)}
+  .nrow-tx{padding:38px 42px;display:flex;flex-direction:column;justify-content:center}
+  .nrow-date{display:inline-flex;align-items:center;gap:9px;font-size:12px;font-weight:700;
+    letter-spacing:.1em;text-transform:uppercase;color:var(--terra);margin-bottom:12px}
+  .nrow-date::before{content:"";width:22px;height:2px;background:var(--terra)}
+  .nrow h2{font-size:clamp(21px,2.3vw,30px);margin-bottom:12px;line-height:1.2}
+  .nrow .exc{color:var(--muted);font-size:16px;margin-bottom:18px}
+  .nrow .full{display:grid;grid-template-rows:0fr;transition:grid-template-rows .38s ease}
+  .nrow.open .full{grid-template-rows:1fr}
+  .nrow .full-in{overflow:hidden}
+  .nrow .full-in p{font-size:15.5px;color:var(--ink);padding-top:4px;padding-bottom:14px;border-top:1px solid var(--line);margin-top:4px}
+  .nrow .more{align-self:flex-start;display:inline-flex;align-items:center;gap:11px;background:none;
+    border:none;cursor:pointer;font-family:inherit;font-size:14.5px;font-weight:700;color:var(--terra);
+    padding:11px 0;min-height:44px}
+  .nrow .more:hover .arw{background:var(--terra-bg)}
+  .nrow.open .more .arw{background:var(--terra);border-color:var(--terra)}
+  .nrow.open .more .arw::after{border-color:#fff;transform:translate(-50%,-30%) rotate(225deg)}
+
+  .nrow-ph{position:relative;min-height:330px;background:var(--sand);overflow:hidden}
+  .nrow-ph img,.nrow-ph video{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+  .nrow-ph .plc{position:absolute;inset:0;display:grid;place-items:center;color:var(--faint);
+    font-size:12.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+  .nrow-ph .vbadge{position:absolute;left:16px;top:16px;background:rgba(255,255,255,.95);border-radius:16px;
+    padding:6px 14px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--terra)}
+
+  .empty{text-align:center;color:var(--faint);padding:56px 20px;border:1.5px dashed var(--line);border-radius:16px}
+
+  @media(max-width:900px){
+    .nrow{grid-template-columns:1fr}
+    .nrow-ph{order:-1;min-height:230px;position:relative}
+    .nrow-tx{padding:26px 24px}
+    .page-head{padding:110px 0 34px}
+  }
+</style>
+</head>
+<body class="v4 solid-head pal-green">
+<div class="amb" aria-hidden="true"></div>
+<a href="#main" class="skip">Перейти до вмісту</a>
+
+<header>
+  <div class="wrap">
+    <div class="navf">
+      <nav class="menu menu-l">
+        <a href="index.html#pro">Про нас</a>
+        <a href="/">Рулонні</a>
+        <a href="index.html#chomu">Чому ми</a>
+      </nav>
+      <a href="index.html" class="logo-c">
+        <picture><source srcset="assets/logo-circle.webp?v=317" type="image/webp">
+          <img src="assets/logo-circle.png?v=317" alt="" width="28" height="28" decoding="async"></picture>
+        <span><b>Фірмова Штора</b><small>рішення для ваших вікон</small></span>
+      </a>
+      <nav class="menu menu-r hrf">
+        <a href="index.html#vidhuky">Роботи</a>
+        <a href="blog.html">Блог</a>
+        <a href="kviz.html" class="cta-link">Підібрати</a>
+        <button class="burger" aria-label="Меню">☰</button>
+      </nav>
+    </div>
+  </div>
+</header>
+<main id="main">
+
+<div class="page-head">
+  <div class="wrap">
+    <span class="lbl">Блог</span>
+    <h1 style="font-size:clamp(28px,4vw,46px)" data-txt="blog.page.1">Корисне про штори й вікна</h1>
+    <p class="sub" style="margin-bottom:0" data-txt="blog.page.2">Що змінюється у виробництві, як обрати тканину й не помилитись у замірі.</p>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="news-rows" id="newsRows"></div>
+</div>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="fg">
+      <div>
+        <div class="logo" style="margin-bottom:12px">Фірмова <em style="color:#9BD3B4">Штора</em><small>рішення для ваших вікон</small></div>
+        <p style="max-width:280px" data-txt="blog.page.3">Штори день-ніч і класичні рулонні під індивідуальні розміри. Власне виробництво, доставка по Україні.</p>
+      </div>
+      <div><h4 data-txt="blog.page.4">Розділи</h4>
+        <a href="index.html#pro">Про нас</a><a href="index.html#chomu">Чому ми</a>
+        <a href="index.html#budova">Будова</a>
+      <a href="index.html#tkanyny">Тканини</a><a href="index.html#vidhuky">Відгуки</a><a href="blog.html">Блог</a>
+      </div>
+      <div><h4 data-txt="blog.page.5">Інформація</h4>
+        <a href="umovy.html#dostavka">Оплата та доставка</a><a href="umovy.html#garantiya">Гарантія й повернення</a>
+        <a href="umovy.html#oferta">Публічна оферта</a><a href="umovy.html#privacy">Конфіденційність</a>
+      </div>
+      <div><h4 data-txt="blog.page.6">Контакти</h4>
+        <a href="tel:+380959048745" id="footTel">+380 95 904 87 45</a>
+        <a href="#" id="footMail">dimetriskis@gmail.com</a>
+      </div>
+    </div>
+    <div class="fbot"><span>© 2026 Фірмова Штора</span><span>Працюємо офіційно як ФОП</span></div>
+  </div>
+</footer>
+
+<script src="assets/config.js?v=317"></script>
+<script src="assets/api.js?v=317"></script>
+<script src="assets/theme.js?v=317"></script>
+<script src="assets/from.js?v=317"></script>
+<script src="assets/chat.js?v=317"></script>
+<script src="assets/final.js?v=317"></script>
+<script src="assets/site.js?v=317"></script>
+<script>
+
+(function(){
+  const MONTHS = ['січня','лютого','березня','квітня','травня','червня',
+                  'липня','серпня','вересня','жовтня','листопада','грудня'];
+  const fmt = s => { const d = new Date(s); return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`; };
+
+  const MEDIA = ['assets/work-wood-cream.jpg','assets/work-kitchen-grey.jpg','assets/corp-office.jpg'];
+
+  const posts = ((typeof CFG !== 'undefined' && CFG.news) || []).slice().sort((a,b)=>b.date.localeCompare(a.date));
+  const box = document.getElementById('newsRows');
+
+  box.innerHTML = posts.length ? posts.map((p,i)=>{
+    const media = p.media || MEDIA[i % MEDIA.length];
+    const isVideo = /\.(mp4|webm|mov)$/i.test(media);
+    return `
+    <article class="nrow" id="n-${i}">
+      <div class="nrow-tx">
+        <span class="nrow-date">${fmt(p.date)}</span>
+        <h2 data-txt="blog.page.7">${p.title}</h2>
+        <p class="exc" data-txt="blog.page.8">${p.excerpt}</p>
+        <div class="full"><div class="full-in"><p data-txt="blog.page.9">${p.text}</p></div></div>
+        <button class="more" data-i="${i}">
+          <span class="more-t">Читати повністю</span><i class="arw"></i>
+        </button>
+      </div>
+      <div class="nrow-ph">
+        ${isVideo
+          ? `<video src="${media}" controls preload="metadata"></video><span class="vbadge">Відео</span>`
+          : `<picture><source srcset="${media.replace(/\.(jpe?g|png)$/i,'.webp')}" type="image/webp">
+               <img data-img="blog.page.1" src="${media}" alt="${p.title}" loading="lazy" width="1000" height="750"></picture>`}
+      </div>
+    </article>`;
+  }).join('') : '<div class="empty">Новин поки немає. Додати їх можна через адмінпанель.</div>';
+
+  box.querySelectorAll('.more').forEach(b=>b.onclick=()=>{
+    const row = document.getElementById('n-'+b.dataset.i);
+    const open = row.classList.toggle('open');
+    b.querySelector('.more-t').textContent = open ? 'Згорнути' : 'Читати повністю';
+    if(open) (window.dataLayer=window.dataLayer||[]).push({event:'news_open',title:posts[b.dataset.i].title});
+  });
+})();
+</script>
+<script src="assets/loader.js?v=317"></script>
+<script>window.API && API.applySettings();</script>
+
+</body>
+</html>

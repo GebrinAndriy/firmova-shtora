@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" role="img" aria-label="Доставка">
+  <rect x="7" y="17" width="34" height="23" rx="3" fill="#E11B22"/>
+  <path d="M7 17 24 10.5 41 17 24 23.5Z" fill="#B3151B"/>
+  <path d="M24 23.5V40" stroke="#fff" stroke-opacity=".45" stroke-width="2"/>
+  <rect x="20.5" y="25" width="7" height="6" rx="1.2" fill="#fff" fill-opacity=".92"/>
+</svg>

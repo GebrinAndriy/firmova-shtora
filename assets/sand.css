@@ -1,0 +1,82 @@
+.v4.pal-sand{
+  --bg:#F7F2EC; --bg2:#FCF9F5; --card:#FFFFFF;
+  --ink:#241E19; --muted:#6B5C51; --faint:#7C6959; --line:#E8DED1;
+
+  --terra:#95562A; --terra-d:#78431F; --terra-l:#E3C9AC; --terra-bg:#F8F1E8;
+  --forest:#95562A; --forest-d:#78431F; --sand:#F6EDE2; --sand2:#F0E3D4;
+
+  --green:#95562A; --green2:#C08B57; --green-d:#78431F;
+  --orange:#C8853D; --orange2:#B06E2A;
+  --cream:#F6EDE2; --cream2:#FBF6EF;
+
+  --ok:#5F7A4E; --err:#B4442B; --err-bg:#FCF1EE;
+  --warn-bg:#FBF1E0; --warn-line:#EBD9BC; --warn-ink:#7A5312;
+
+  --btn-c-bg:#FFFFFF; --btn-c-ink:#6B4526;
+  --accent-grad:linear-gradient(152deg,#C08B57 0%,#95562A 48%,#6C3C1B 100%);
+  --head-bg:rgba(252,249,245,.92);
+
+  --sh-s:0 1px 2px rgba(60,44,30,.06);
+  --sh-m:0 2px 6px rgba(60,44,30,.06), 0 14px 34px -16px rgba(60,44,30,.16);
+  --sh-l:0 4px 14px rgba(60,44,30,.07), 0 34px 70px -30px rgba(60,44,30,.24);
+}
+
+.pal-sand .amb{
+  background:
+    radial-gradient(42% 30% at 84% 4%, rgba(214,163,106,.28), transparent 68%),
+    radial-gradient(36% 26% at 6% 10%, rgba(255,255,255,.9), transparent 70%),
+    radial-gradient(46% 34% at 94% 70%, rgba(186,132,82,.14), transparent 70%),
+    radial-gradient(38% 28% at 12% 88%, rgba(226,190,150,.16), transparent 70%),
+    radial-gradient(30% 24% at 50% 44%, rgba(255,255,255,.55), transparent 72%)}
+
+html[data-theme="dark"] .pal-sand{
+  --bg:#15110E; --bg2:#1C1714; --card:#231D18;
+  --ink:#F1E9E1; --muted:#B5A396; --faint:#9C8A7B; --line:#352B24;
+
+  --terra:#DCA979; --terra-d:#C4915F; --terra-l:#3A2B1E; --terra-bg:#271E17;
+  --forest:#DCA979; --forest-d:#C4915F; --sand:#1F1915; --sand2:#1A1512;
+
+  --green:#DCA979; --green2:#E9BE90; --green-d:#C4915F;
+  --orange:#E0A45E; --orange2:#CE8C42;
+  --cream:#1F1915; --cream2:#1A1512;
+
+  --ok:#8FB07C; --err:#EE8D74; --err-bg:#2A1A16;
+  --warn-bg:#2A2214; --warn-line:#4A3C1E; --warn-ink:#E8C98A;
+
+  --btn-c-bg:#F3E9DC; --btn-c-ink:#4A3520;
+  --head-bg:rgba(21,17,14,.92);
+
+  --sh-s:0 1px 2px rgba(0,0,0,.42);
+  --sh-m:0 2px 6px rgba(0,0,0,.36), 0 14px 34px -16px rgba(0,0,0,.62);
+  --sh-l:0 4px 14px rgba(0,0,0,.42), 0 34px 70px -30px rgba(0,0,0,.76);
+}
+@media(prefers-color-scheme:dark){
+  html:not([data-theme="light"]) .pal-sand{
+    --bg:#15110E; --bg2:#1C1714; --card:#231D18;
+    --ink:#F1E9E1; --muted:#B5A396; --faint:#9C8A7B; --line:#352B24;
+    --terra:#DCA979; --terra-d:#C4915F; --terra-l:#3A2B1E; --terra-bg:#271E17;
+    --forest:#DCA979; --forest-d:#C4915F; --sand:#1F1915; --sand2:#1A1512;
+    --green:#DCA979; --green2:#E9BE90; --green-d:#C4915F;
+    --orange:#E0A45E; --orange2:#CE8C42;
+    --cream:#1F1915; --cream2:#1A1512;
+    --ok:#8FB07C; --err:#EE8D74; --err-bg:#2A1A16;
+    --btn-c-bg:#F3E9DC; --btn-c-ink:#4A3520;
+    --head-bg:rgba(21,17,14,.92);
+  }
+}
+html[data-theme="dark"] .pal-sand .amb{
+  background:
+    radial-gradient(42% 30% at 84% 4%, rgba(160,110,60,.16), transparent 68%),
+    radial-gradient(46% 34% at 94% 70%, rgba(120,84,52,.12), transparent 70%),
+    radial-gradient(38% 28% at 12% 88%, rgba(90,66,44,.14), transparent 70%)}
+
+html[data-theme="dark"] .pal-sand .btn-p,
+html[data-theme="dark"] .pal-sand .step-n,
+html[data-theme="dark"] .pal-sand .done-ic,
+html[data-theme="dark"] .pal-sand .p3tick,
+html[data-theme="dark"] .pal-sand .rstep::before,
+html[data-theme="dark"] .pal-sand .kv-opt .tick,
+html[data-theme="dark"] .pal-sand .kv-fab .tick,
+html[data-theme="dark"] .pal-sand .kv-mount .tick,
+html[data-theme="dark"] .pal-sand .ck-go{color:#2C1D10}
+.pal-sand .kv-opt .tick,.pal-sand .kv-fab .tick,.pal-sand .kv-mount .tick{color:#FFFFFF}
