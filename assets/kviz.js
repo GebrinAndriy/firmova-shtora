@@ -29,6 +29,14 @@ function fabTag(f){
   return (f.price || 0) + ' ₴/м²';
 }
 const track = (e,d={}) => (window.dataLayer=window.dataLayer||[]).push({event:e,...d});
+function clarityEvent(name){
+  if(typeof window.clarity !== 'function') return false;
+  try{
+    if(localStorage.getItem('fsh_consent') !== 'all') return false;
+    window.clarity('event', name);
+    return true;
+  }catch(e){ return false; }
+}
 const clamp = (v,a,b) => Math.min(Math.max(v,a),b);
 const calm  = matchMedia('(prefers-reduced-motion:reduce)').matches;
 
@@ -41,6 +49,7 @@ let cart = [];
 let cur = null;
 let curAdded = false;
 let curIdx = -1;
+let sending = false;
 
 const STEPS = ['line','fabric','size'];
 
@@ -435,17 +444,22 @@ function show(name, fromHistory){
     b.style.display = '';
   });
   syncNext(name);
+  if(name === 'size') clarityEvent('kviz_measurement_opened');
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
 function next(){
+  if(sending) return;
   const name = STEPS[step];
 
   if(!answered[name]) return;
 
   if(name === 'fabric') stashBlind();
   if(name === 'size'){
-    if(!checkSize()) return;
+    if(!checkSize()){
+      clarityEvent('kviz_measurement_invalid');
+      return;
+    }
     stashBlind();
 
     finishBlind();
@@ -672,11 +686,10 @@ function buildOptions(){
 }
 
 function saveCart(){
-  orderRid = '';
   try{ localStorage.setItem(STORE, JSON.stringify({t:Date.now(), cart})); }catch(e){}
 }
 
-let orderRid = '';
+const requestIds = new Map();
 function newRid(){
   try{ if(crypto.randomUUID) return crypto.randomUUID(); }catch(e){}
   return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 12);
@@ -718,6 +731,7 @@ function openCart(зІсторії, безПодії){
   window.scrollTo({top:0, behavior:'smooth'});
 }
 function openQuiz(fresh){
+  if(sending) return;
   $('#kvCart').style.display = 'none';
   $('#kvQuiz').style.display = '';
   if(fresh){
@@ -736,7 +750,7 @@ function renderCart(){
     return;
   }
   $('#kvTotalBox').style.display = '';
-  $('#kvSubmit').disabled = false;
+  $('#kvSubmit').disabled = sending;
   list.innerHTML = cart.map((c,i)=>{
 
     const bl = Array.isArray(c.blinds) && c.blinds.length
@@ -767,6 +781,7 @@ function renderCart(){
   }).join('');
   list.querySelectorAll('.del').forEach(b=>b.onclick = e=>{
     e.stopPropagation();
+    if(sending) return;
     pvHide();
     const i = +b.dataset.i;
     cart.splice(i, 1);
@@ -803,15 +818,36 @@ const cartOld = () => {
   return sum;
 };
 
+let priceObserver;
+let priceSeen = false;
 function syncPay(){
   const total = cartSum();
   const put = (sel, v) => { const e = $(sel); if(e) e.textContent = v; };
   put('#kvNowLab', total === null ? 'Ціна' : 'Ціна');
-  { const _n = $('#kvNow'); if(_n) _n.innerHTML = priceTag(total, true, cartOld()); }
+  const price = $('#kvNow');
+  if(price) price.innerHTML = priceTag(total, true, cartOld());
   put('#kvRest', '');
   put('#kvGoSum', cart.length ? (total === null ? 'за розрахунком менеджера' : money(total)) : '');
 
+  priceObserver?.disconnect();
+  priceObserver = null;
+  if(priceSeen || !cart.length || !Number.isFinite(total) ||
+     typeof window.clarity !== 'function' || typeof IntersectionObserver !== 'function') return;
+  const observer = new IntersectionObserver(entries=>{
+    if(priceObserver !== observer || !entries.some(entry=>entry.isIntersecting && entry.intersectionRatio >= 0.5)) return;
+    if(clarityEvent('kviz_price_shown')){
+      priceSeen = true;
+      observer.disconnect();
+      priceObserver = null;
+    }
+  }, {threshold:0.5});
+  priceObserver = observer;
+  [price, $('#kvTotal'), $('#kvGoSum')].filter(Boolean).forEach(element=>observer.observe(element));
 }
+document.addEventListener('fsh-clarity-ready', ()=>{
+  if($('.kv-q.on')?.dataset.q === 'size') clarityEvent('kviz_measurement_opened');
+  if(cart.length && $('#kvCart').style.display !== 'none') syncPay();
+});
 
 const курсор = () => matchMedia('(hover:hover) and (pointer:fine)').matches;
 let pvModal = false;
@@ -1032,6 +1068,7 @@ function addToCartQuiet(){
 
 let ckMode = 'order';
 function setMode(m){
+  if(sending) return;
   ckMode = m === 'hold' ? 'hold' : 'order';
   document.querySelectorAll('#kvModes [data-mode]').forEach(b=>{
     const on = b.dataset.mode === ckMode;
@@ -1042,7 +1079,7 @@ function setMode(m){
     el.hidden = el.dataset.for !== ckMode;
   });
   const lab = $('#kvGoLab');
-  if(lab) lab.textContent = ckMode === 'hold' ? 'Зафіксувати знижку' : 'Оформити замовлення';
+  if(lab && !sending) lab.textContent = ckMode === 'hold' ? 'Зафіксувати знижку' : 'Оформити замовлення';
   const sum = $('#kvGoSum');
   if(sum) sum.hidden = ckMode === 'hold';
   syncPay();
@@ -1061,7 +1098,7 @@ function showThanks(title, text){
   if(x) x.textContent = text;
 
   надіслано = true;
-  cart = []; curAdded = false; curIdx = -1; orderRid = '';
+  cart = []; curAdded = false; curIdx = -1; requestIds.clear();
   try{ localStorage.removeItem(STORE); }catch(e){}
   try{ history.replaceState({kvView:'thanks'}, '', location.href); }catch(e){}
   $('#kvQuiz').style.display = 'none';
@@ -1076,7 +1113,6 @@ function send(extra){
     source:'Квіз-калькулятор',
 
     utm: window.fshUtm ? window.fshUtm() : {},
-    rid: orderRid || undefined,
     total: totalSum,
     individual: totalSum === null,
     windows: cart.map((c,i)=>{
@@ -1111,14 +1147,11 @@ function send(extra){
 
 function submitting(btn, on){
   if(!btn) return;
-  if(on){
-    btn.dataset.was = btn.textContent;
-    btn.disabled = true;
-    btn.textContent = 'Надсилаємо…';
-  } else {
-    btn.disabled = false;
-    if(btn.dataset.was) btn.textContent = btn.dataset.was;
-  }
+  sending = on;
+  btn.disabled = on;
+  const label = $('#kvGoLab');
+  if(label) label.textContent = on ? 'Надсилаємо…'
+    : ckMode === 'hold' ? 'Зафіксувати знижку' : 'Оформити замовлення';
 }
 function sendFail(box, err){
   let p = box.querySelector('.send-err');
@@ -1135,6 +1168,8 @@ function sendFail(box, err){
 }
 $('#kvAddWin').onclick = ()=> openQuiz(true);
 $('#kvRestart') && ($('#kvRestart').onclick = ()=>{
+  if(sending) return;
+  requestIds.clear();
   cart = []; try{ localStorage.removeItem(STORE); }catch(e){}
   openQuiz(true); if(!preset) show('line');
 });
@@ -1187,7 +1222,7 @@ addEventListener('popstate', e=>{
 
   if(закритиВікна()) return;
 
-  if(надіслано) return;
+  if(надіслано || sending) return;
   const st = e.state || {};
   if(st.kvView === 'cart'){ openCart(true); return; }
   const name = st.kvStep;
@@ -1200,6 +1235,8 @@ addEventListener('popstate', e=>{
 
 $('#kvForm').onsubmit = e => {
   e.preventDefault();
+  const btn = $('#kvSubmit');
+  if(sending || надіслано || btn?.disabled) return;
   const name = $('#kvName').value.trim();
   const phone = $('#kvPhone').value.replace(/[\s()-]/g,'');
   const city = ($('#kvCity') || {}).value ? $('#kvCity').value.trim() : '';
@@ -1208,6 +1245,7 @@ $('#kvForm').onsubmit = e => {
   const okPhone = /^(\+?38)?0\d{9}$/.test(phone);
   const roller = cart.length && cart.every(c=>c.line === 'roller');
   const hold = ckMode === 'hold';
+  if(!hold) clarityEvent('kviz_order_submit_attempted');
 
   const okShip = hold || !roller || (city.length >= 2 && branch.length >= 1);
   const days = Math.round(Number(($('#kvDays') || {}).value || 0));
@@ -1219,39 +1257,49 @@ $('#kvForm').onsubmit = e => {
   const errCity = $('#kvErrCity');
   if(errCity) errCity.style.display = okShip ? 'none' : 'block';
   if(!okName || !okPhone || !okShip || !okDays){
+    clarityEvent('kviz_checkout_invalid');
     const bad = !okName ? '#kvName' : !okPhone ? '#kvPhone' : !okShip ? '#kvCity' : '#kvDays';
     const el = $(bad); if(el) el.focus();
     return;
   }
 
-  const btn = $('#kvSubmit');
-  if(btn && btn.disabled) return;
   submitting(btn, true);
-  if(!orderRid) orderRid = newRid();
+  const details = hold
+    ? { name, phone, hold: days,
+        kind: 'Фіксація знижки на ' + days + (days === 1 ? ' день' : days < 5 ? ' дні' : ' днів') }
+    : { name, phone, pay: payWay,
+        delivery: 'Нова Пошта, ' + city + ', ' + branch,
+        kind: 'Замовлення класичної рулонної' };
+  const request = JSON.stringify([details, cart]);
+  if(!requestIds.has(request)) requestIds.set(request, newRid());
+  const rid = requestIds.get(request);
 
   const eventName = hold ? 'PriceHold' : 'Lead';
-  let мета = null, eventId = null;
-  if(window.__fbReady){
-    eventId = window.metaNewId ? metaNewId() : null;
-    if(eventId)
-      мета = Object.assign({ event_id: eventId, event_name: eventName }, window.metaIds ? metaIds() : {});
-  }
+  const eventId = window.__fbReady ? rid : null;
+  const мета = eventId
+    ? Object.assign({ event_id: eventId, event_name: eventName }, window.metaIds ? metaIds() : {})
+    : null;
+  const value = cartSum() || 0;
+  const windows = cart.length;
 
-  send(hold
-      ? { name, phone, hold: days, meta: мета,
-          kind: 'Фіксація знижки на ' + days + (days === 1 ? ' день' : days < 5 ? ' дні' : ' днів') }
-      : { name, phone, pay: payWay, meta: мета,
-          delivery: 'Нова Пошта, ' + city + ', ' + branch,
-          kind: 'Замовлення класичної рулонної' })
-    .then(()=>{
+  send({ ...details, rid, meta: мета })
+    .then(result=>{
+      if(result?.ok !== true || result.stored !== true || typeof result.id !== 'string' || !result.id.trim()){
+        throw new Error('Сервер не підтвердив збереження заявки.');
+      }
 
-      track('kviz_submit', { value: cartSum() || 0, windows: cart.length,
+      track('kviz_submit', { value, windows,
                              lead_type: hold ? 'hold' : 'order' });
+      clarityEvent(hold ? 'kviz_discount_hold_saved' : 'kviz_order_saved');
       if(eventId && window.metaEvent)
-        metaEvent(eventName, { value: cartSum() || 0, currency: 'UAH' }, eventId);
+        metaEvent(eventName, { value, currency: 'UAH' }, eventId);
       afterSend(hold);
     })
-    .catch(err=>{ submitting(btn, false); sendFail($('#kvForm'), err); });
+    .catch(err=>{
+      clarityEvent('kviz_submit_failed');
+      submitting(btn, false);
+      sendFail($('#kvForm'), err);
+    });
 };
 
 function afterSend(hold){

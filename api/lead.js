@@ -1,4 +1,4 @@
-import { push, isPersistent, bump, smembers, srem, setOnce, getRaw } from '../lib/store.js';
+import { push, pushWithReceipt, isPersistent, bump, smembers, srem } from '../lib/store.js';
 import { clientIp } from '../lib/ip.js';
 import { capi, metaReady } from '../lib/meta.js';
 
@@ -12,6 +12,7 @@ const НА_НОМЕР  = 6;
 
 const ЗАПИС_ЗА_ДОБУ = 400;
 const МАКС_ТІЛО = 24 * 1024;
+const TTL_ПОВТОРУ = 86400;
 
 function clean(v, max = 200) {
   return String(v == null ? '' : v).trim().slice(0, max);
@@ -175,6 +176,17 @@ export default async function handler(req, res) {
   const rawLen = typeof req.body === 'string' ? req.body.length : JSON.stringify(req.body || {}).length;
   if (rawLen > МАКС_ТІЛО) return res.status(413).json({ error: 'Заявка завелика' });
 
+  if (process.env.VERCEL === '1' && !isPersistent) {
+    return res.status(503).json({ error: 'Не вдалося зберегти заявку. Спробуйте ще раз або зателефонуйте нам.' });
+  }
+
+  const body = typeof req.body === 'string' ? safeParse(req.body) : (req.body || {});
+  const name = clean(body.name, 80);
+  const phone = clean(body.phone, 24).replace(/[\s()-]/g, '');
+  const rid = /^[a-z0-9-]{8,64}$/i.test(String(body.rid || '')) ? String(body.rid) : '';
+  const confirmDuplicate = id =>
+    res.status(200).json({ ok: true, id, stored: true, duplicate: true, persistent: isPersistent });
+
   const ip = clientIp(req);
   try {
 
@@ -185,18 +197,13 @@ export default async function handler(req, res) {
     }
   } catch (e) {   }
 
-  const body = typeof req.body === 'string' ? safeParse(req.body) : (req.body || {});
-  const name  = clean(body.name, 80);
-  const phone = clean(body.phone, 24).replace(/[\s()-]/g, '');
-
   if (name.length < 2) return res.status(400).json({ error: 'Вкажіть імʼя' });
   if (!PHONE.test(phone)) return res.status(400).json({ error: 'Вкажіть коректний номер телефону' });
 
-  const rid = /^[a-z0-9-]{8,64}$/i.test(String(body.rid || '')) ? String(body.rid) : '';
   if (rid) {
     try {
-      const було = await getRaw('lead:rid:' + rid);
-      if (було) return res.status(200).json({ ok: true, id: було, stored: true, duplicate: true, persistent: isPersistent });
+      const receipt = await pushWithReceipt(LIST, rid, null, TTL_ПОВТОРУ);
+      if (receipt) return confirmDuplicate(receipt.id);
     } catch (e) {}
   }
 
@@ -248,12 +255,12 @@ export default async function handler(req, res) {
   if (JSON.stringify(lead).length > МАКС_ТІЛО) return res.status(413).json({ error: 'Заявка завелика' });
 
   try {
-    if (rid && !(await setOnce('lead:rid:' + rid, lead.id, 86400))) {
-
-      const було = await getRaw('lead:rid:' + rid);
-      return res.status(200).json({ ok: true, id: було || lead.id, stored: true, duplicate: true, persistent: isPersistent });
+    if (rid) {
+      const receipt = await pushWithReceipt(LIST, rid, lead, TTL_ПОВТОРУ);
+      if (receipt.duplicate) return confirmDuplicate(receipt.id);
+    } else {
+      await push(LIST, lead);
     }
-    await push(LIST, lead);
   } catch (e) {
 
     return res.status(500).json({ error: 'Не вдалося зберегти заявку. Зателефонуйте нам, будь ласка.' });

@@ -594,6 +594,7 @@ return { sendLead, applySettings, fabricBg, msgLink, msgHref, goMessenger, rende
         var t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
         var y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
       })(window,document,"clarity","script",cid);
+      document.dispatchEvent(new Event('fsh-clarity-ready'));
     }
 
     const mp = String(A.metaPixel || '').trim();
