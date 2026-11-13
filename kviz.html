@@ -1,0 +1,359 @@
+﻿<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<style id="fshBoot">html.fsh-boot body,html.fsh-wait body{visibility:hidden}html.fsh-boot::before{content:"";position:fixed;inset:0;z-index:2147483646;background:#2A231C}html.fsh-boot::after{content:"";position:fixed;z-index:2147483647;left:50%;top:50%;width:54px;height:54px;margin:-27px;border-radius:50%;border:3px solid rgba(239,176,106,.25);border-top-color:#EFB06A;animation:fshspin .7s linear infinite}@keyframes fshspin{to{transform:rotate(360deg)}}html.fsh-boot-off body{visibility:visible}html.fsh-boot-off::before,html.fsh-boot-off::after{opacity:0;transition:opacity .25s ease;pointer-events:none}</style><script>try{var h=document.documentElement;if(sessionStorage.getItem("fsh_seen")!=="1"){h.classList.add("fsh-boot");setTimeout(function(){h.classList.remove("fsh-boot")},4000);}else{h.classList.add("fsh-wait");setTimeout(function(){h.classList.remove("fsh-wait")},1500);}}catch(e){}</script>
+
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://*.clarity.ms https://connect.facebook.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://*.clarity.ms https://c.bing.com https://connect.facebook.net https://www.facebook.com; frame-src https://www.youtube-nocookie.com; media-src 'self' https:; base-uri 'self'; object-src 'none'; form-action 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Підбір штори за кілька кроків — Фірмова Штора</title>
+<meta name="description" content="Відповідайте на кілька простих питань і побачте, як виглядатиме ваше вікно зі шторою. Ціна одразу, без дзвінків.">
+<link rel="canonical" href="https://www.firmova-shtora.com.ua/kviz.html">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="uk_UA">
+<meta property="og:site_name" content="Фірмова Штора">
+<meta property="og:title" content="Підбір штори за кілька кроків — Фірмова Штора">
+<meta property="og:description" content="Відповідайте на кілька простих питань і побачте, як виглядатиме ваше вікно зі шторою.">
+<meta property="og:url" content="https://www.firmova-shtora.com.ua/kviz.html">
+<meta name="theme-color" content="#F2F1ED">
+<link rel="icon" href="favicon.ico?v=317" sizes="any">
+<link rel="icon" href="assets/favicon-32.png?v=317" type="image/png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=317">
+<link rel="preload" href="assets/fonts/manrope-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/inter-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+<script>
+try{document.documentElement.setAttribute("data-theme",
+  localStorage.getItem("fsh_theme")||(matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light"))}catch(e){}</script>
+<link rel="stylesheet" href="assets/fonts.css?v=317">
+<link rel="stylesheet" href="assets/loader.css?v=317">
+<link rel="stylesheet" href="assets/style.css?v=317">
+<link rel="stylesheet" href="assets/v4.css?v=317">
+<link rel="stylesheet" href="assets/theme.css?v=317">
+<link rel="stylesheet" href="assets/sand.css?v=317">
+<link rel="stylesheet" href="assets/final.css?v=317">
+<link rel="stylesheet" href="assets/kviz.css?v=317">
+</head>
+<body class="v4 solid-head pal-sand">
+<a href="#main" class="skip">Перейти до вмісту</a>
+<div class="amb" aria-hidden="true"></div>
+
+<header>
+  <div class="wrap">
+    <div class="navf">
+      <a href="/" class="logo-c">
+        <picture><source srcset="assets/logo-circle.webp?v=317" type="image/webp">
+          <img src="assets/logo-circle.png?v=317" alt="" width="28" height="28" decoding="async"></picture>
+        <span><b>Фірмова Штора</b><small>рулонні штори на замовлення</small></span>
+      </a>
+      <nav class="menu menu-r">
+        <a href="/#kolir">Тканини</a>
+        <a href="/#tsina">Ціни</a>
+        <a href="/#dostavka">Доставка</a>
+        <a href="/#pro">Про нас</a>
+      </nav>
+    </div>
+  </div>
+</header>
+<main id="main">
+
+<div class="kv">
+  <div class="wrap">
+
+    <h1 class="sr-only">Розрахунок вартості штор під розмір вашого вікна</h1>
+
+    <div class="kv-in" id="kvQuiz">
+      <div class="kv-top">
+        <button class="kv-back" id="kvBack" type="button" aria-label="Назад">←</button>
+        <div class="kv-bar"><i id="kvBar" style="width:0%"></i></div>
+        <span class="kv-step" id="kvStep">Початок</span>
+      </div>
+
+      <div class="kv-stage">
+
+        <section class="kv-q on" data-q="line">
+          <h2 data-txt="kviz.page.1">Які штори вам потрібні?</h2>
+          <p class="hint" data-txt="kviz.page.2">Механізм, кріплення й точність розмірів однакові. Різниця в тому, що саме має робити штора у вашій кімнаті.</p>
+          <div class="kv-opts kv-opts--2" id="kvLine" role="radiogroup" aria-label="Які штори потрібні"></div>
+          <div class="kv-nav"><button class="btn btn-p" type="button" data-next disabled>Далі</button></div>
+        </section>
+
+        <section class="kv-q" data-q="fabric">
+          <span class="kv-badge"></span>
+          <h2 data-txt="kviz.page.10">Оберіть тканину</h2>
+          <p class="hint" data-txt="kviz.page.11">Від світлопрозорої до повного затемнення. Колір одразу зʼявиться на візуалізації.</p>
+          <p class="hint kv-blind-lab" id="kvFabBlind"></p>
+
+          <div class="kv-fabpick">
+            <figure class="kv-fabview">
+              <span class="kv-fabimg" id="kvFabImg" data-empty="Тут зʼявиться обрана тканина">
+                <span class="ff-win" aria-hidden="true"></span>
+                <span class="ff-tex" aria-hidden="true"></span>
+                <b class="ff-hint"><span class="ff-hint-pc" data-txt="kviz.page.35">Наведіть — тканина зблизька</span><span class="ff-hint-mob" data-txt="kviz.page.36">Натисніть — тканина зблизька</span></b>
+              </span>
+              <figcaption>
+                <b id="kvFabName"></b>
+                <span id="kvFabTrans"></span>
+                <span class="kv-fabprice" id="kvFabPrice"></span>
+              </figcaption>
+            </figure>
+            <div class="kv-fabside">
+
+              <div class="fsel" id="kvFabSel">
+                <button class="fsel-btn" type="button" aria-haspopup="listbox" aria-expanded="false">
+                  <span class="fsel-sw" aria-hidden="true"></span>
+                  <span class="fsel-tx"><b>Оберіть тканину</b><span>усі відтінки каталогу</span></span>
+                  <span class="fsel-arw" aria-hidden="true"></span>
+                </button>
+                <div class="fsel-pop" role="listbox" aria-label="Тканина" hidden></div>
+              </div>
+              <div class="kv-fabs" id="kvFabric" role="radiogroup" aria-label="Тканина"></div>
+            </div>
+          </div>
+          <div class="kv-nav"><button class="btn btn-p" type="button" data-next disabled>Далі</button></div>
+        </section>
+
+        <section class="kv-q" data-q="size">
+          <span class="kv-badge"></span>
+          <h2 data-txt="kviz.page.12">Введіть розміри тканини</h2>
+          <p class="hint kv-blind-lab" id="kvSizeHint"></p>
+
+          <div class="kv-dims">
+            <div class="kv-dim">
+              <label for="kvW">Ширина тканини, см</label>
+              <input type="number" id="kvW" inputmode="numeric" value="65"
+                     aria-describedby="kvErrW">
+              <p class="fld-err" id="kvErrW" role="alert"></p>
+            </div>
+            <div class="kv-dim">
+              <label for="kvH">Висота тканини, см</label>
+              <input type="number" id="kvH" inputmode="numeric" value="150"
+                     aria-describedby="kvErrH">
+              <p class="fld-err" id="kvErrH" role="alert"></p>
+            </div>
+            <div class="kv-dim kv-dim--auto">
+              <label for="kvProdW">Ширина готового виробу, см</label>
+              <input type="number" id="kvProdW" readonly tabindex="-1" aria-readonly="true">
+            </div>
+          </div>
+
+          <button class="kv-howlink" type="button" id="kvHowBtn" aria-haspopup="dialog"
+                  data-txt="kviz.page.33">Не знаєте, як заміряти?</button>
+          <div class="kv-warn" id="kvSizeWarn">
+            Для такого розміру потрібен індивідуальний розрахунок. Змініть значення або
+            <a data-tel href="tel:+380959048745" style="color:inherit;text-decoration:underline">зателефонуйте нам</a>.
+          </div>
+          <p class="kv-wide" id="kvWideNote"></p>
+          <div class="kv-nav"><button class="btn btn-p" type="button" data-next>Далі</button></div>
+        </section>
+
+        <section class="kv-q" data-q="side">
+          <span class="kv-badge"></span>
+          <h2 data-txt="kviz.page.15">З якого боку зручніше ланцюжок?</h2>
+          <p class="hint" data-txt="kviz.page.16">Найчастіше обирають бік, протилежний до ручки вікна.</p>
+          <div class="kv-opts kv-opts--2" id="kvSide" role="radiogroup" aria-label="Сторона ланцюжка"></div>
+          <div class="kv-nav"><button class="btn btn-p" type="button" data-next disabled>Далі</button></div>
+        </section>
+
+        <section class="kv-q" data-q="options">
+          <span class="kv-badge"></span>
+          <h2 data-txt="kviz.page.17">Додаткові опції</h2>
+          <p class="hint" data-txt="kviz.page.18">Не обовʼязково. Базові кріплення вже входять у комплект.</p>
+          <div class="kv-checks" id="kvOptions"></div>
+          <div class="kv-nav">
+            <button class="btn btn-p" type="button" data-next>Показати результат</button>
+          </div>
+        </section>
+
+      </div>
+    </div>
+
+    <div class="kv-cart" id="kvCart" style="display:none">
+      <div class="ck">
+
+        <aside class="ck-side">
+          <div class="ck-card">
+            <div class="ck-sum-h">
+              <h3 data-txt="kviz.page.23">Ваше замовлення</h3>
+              <span class="ck-cnt"><b id="kvCount">0</b></span>
+            </div>
+
+            <div id="kvList"></div>
+
+            <div class="ck-rows" id="kvTotalBox">
+              <div class="ck-row ck-row--items"><span>Вироби</span><b id="kvTotal">0 ₴</b></div>
+              <div class="ck-row ck-row--ship"><span>Доставка</span><i id="kvShipCost">за тарифом Нової Пошти</i></div>
+              <div class="ck-row ck-row--now">
+                <span id="kvNowLab">Ціна</span><b id="kvNow">0 ₴</b>
+              </div>
+              <p class="ck-rest" id="kvRest"></p>
+              <p class="kv-indiv-note" id="kvCartIndivNote"></p>
+            </div>
+
+            <div class="ck-side-act">
+              <button class="btn btn-p" type="button" id="kvAddWin">+ Додати штору</button>
+              <button class="ck-plain" type="button" id="kvRestart">Почати заново</button>
+            </div>
+
+            <p class="ck-note">Це попередня вартість. Перед запуском у виробництво ми звіряємо
+              розміри з вами — у більшості випадків сума лишається без змін.</p>
+          </div>
+        </aside>
+
+        <form class="ck-main" id="kvForm" novalidate>
+          <h2 class="ck-h" id="kvFormTitle" data-txt="kviz.page.27">Що робимо далі?</h2>
+          <p class="ck-lead">Можна оформити замовлення зараз або просто закріпити за собою знижку й повернутись пізніше.</p>
+
+          <div class="ck-modes" id="kvModes" role="radiogroup" aria-label="Що робимо">
+            <button class="ck-mode on" type="button" role="radio" aria-checked="true" data-mode="order">
+              <span class="ck-radio" aria-hidden="true"></span>
+              <span class="ck-mode-tx"><b>Оформити замовлення</b>
+                <span>Приймемо в роботу й узгодимо розміри</span></span>
+            </button>
+            <button class="ck-mode" type="button" role="radio" aria-checked="false" data-mode="hold">
+              <span class="ck-radio" aria-hidden="true"></span>
+              <span class="ck-mode-tx"><b>Зафіксувати знижку</b>
+                <span>Ціна збережеться за вами до двох тижнів</span></span>
+            </button>
+          </div>
+
+          <section class="ck-step">
+            <h3 class="ck-st"><span class="ck-n">1</span>Контакти</h3>
+            <div class="ck-grid">
+              <label class="ck-f">
+                <span class="ck-lab">Імʼя</span>
+                <input type="text" id="kvName" placeholder="Ваше імʼя" autocomplete="name"
+                       aria-describedby="kvErrName">
+              </label>
+              <label class="ck-f">
+                <span class="ck-lab">Телефон</span>
+                <input type="tel" id="kvPhone" placeholder="0XX XXX XX XX" autocomplete="tel"
+                       aria-describedby="kvErrPhone">
+              </label>
+            </div>
+            <p class="err" id="kvErrName">Вкажіть, будь ласка, імʼя</p>
+            <p class="err" id="kvErrPhone">Вкажіть коректний номер телефону</p>
+          </section>
+
+          <section class="ck-step" id="kvShip" data-for="order">
+            <h3 class="ck-st"><span class="ck-n">2</span>Доставка</h3>
+            <div class="ck-carrier">
+              <span class="ck-carrier-ic ck-carrier-ic--logo">
+                <img data-img="kviz.dostavka" src="assets/nova-poshta.png?v=317"
+                     alt="Нова Пошта" width="44" height="44" decoding="async"></span>
+              <span><b>Нова Пошта</b>по всій Україні</span>
+            </div>
+            <div class="ck-grid">
+              <label class="ck-f">
+                <span class="ck-lab">Місто</span>
+                <input type="text" id="kvCity" placeholder="Наприклад, Львів"
+                       autocomplete="off" aria-describedby="kvErrCity">
+              </label>
+              <label class="ck-f">
+                <span class="ck-lab">Відділення</span>
+                <input type="text" id="kvBranch" placeholder="Номер або адреса"
+                       autocomplete="off" aria-describedby="kvErrCity">
+              </label>
+            </div>
+            <p class="err" id="kvErrCity">Вкажіть місто й відділення</p>
+          </section>
+
+          <section class="ck-step" id="kvPay" data-for="order">
+            <h3 class="ck-st"><span class="ck-n">3</span>Оплата</h3>
+
+            <p class="ck-pay-lead" data-txt="kviz.pay.lead">Платите після того, як менеджер підтвердить замовлення й звірить розміри.</p>
+            <div class="ck-pay-opts">
+              <div class="ck-pay-opt">
+                <b data-txt="kviz.pay.1.t">100% передоплата</b>
+                <span data-txt="kviz.pay.1.d">уся сума одразу на рахунок ФОП</span>
+              </div>
+              <div class="ck-pay-opt">
+                <b data-txt="kviz.pay.2.t">50% + 50%</b>
+                <span data-txt="kviz.pay.2.d">половина наперед, решта — при отриманні</span>
+              </div>
+            </div>
+            <p class="ck-secure">
+              <span aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                     stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="5" y="10.5" width="14" height="9" rx="2"/>
+                  <path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg></span>
+              <span data-txt="kviz.pay.note">Спосіб оплати узгодимо з вами телефоном. Карткових даних сайт не приймає — реквізити надішлемо після звірки розмірів.</span>
+            </p>
+          </section>
+
+          <section class="ck-step" id="kvHold" data-for="hold" hidden>
+            <h3 class="ck-st"><span class="ck-n">2</span>На скільки зафіксувати</h3>
+            <label class="ck-f ck-days">
+              <span class="ck-lab">Кількість днів, максимум 14</span>
+              <input type="number" id="kvDays" min="1" max="14" step="1" value="7"
+                     inputmode="numeric" aria-describedby="kvErrDays">
+            </label>
+            <p class="err" id="kvErrDays">Вкажіть від 1 до 14 днів</p>
+            <p class="ck-secure ck-secure--plain">Ціна й склад замовлення збережуться за вами.
+              Нагадаємо за день до кінця строку.</p>
+          </section>
+
+          <button class="btn btn-p ck-go" id="kvSubmit" type="submit">
+            <span id="kvGoLab">Оформити замовлення</span><b id="kvGoSum"></b>
+          </button>
+          <p class="kvc-priv" data-txt="kviz.page.28">Натискаючи кнопку, ви погоджуєтесь на обробку контактів для цього
+            замовлення. <a href="umovy.html#privacy">Як ми зберігаємо дані</a>.</p>
+        </form>
+
+      </div>
+    </div>
+
+    <div class="kv-thanks" id="kvThanks">
+      <div class="ic">✓</div>
+      <h2 id="kvThanksTitle" data-txt="kviz.page.29">Дякуємо! Розрахунок надіслано</h2>
+      <p class="sub" style="margin:12px auto 24px" id="kvThanksText" data-txt="kviz.page.30">Наш помічник звʼяжеться з вами протягом найближчої робочої години.</p>
+      <a href="/" class="btn btn-o">На головну</a>
+    </div>
+
+  </div>
+</div>
+
+<div class="kv-pv" id="kvPv" hidden>
+  <div class="kv-pv-box" role="dialog" aria-modal="true" aria-label="Візуалізація штори">
+    <button class="kv-pv-x" type="button" aria-label="Закрити">×</button>
+    <div class="kv-pv-view" id="kvPvView"></div>
+    <div class="kv-pv-cap" id="kvPvCap"></div>
+  </div>
+</div>
+
+<div class="kv-how" id="kvHow" hidden>
+  <div class="kv-how-box" role="dialog" aria-modal="true" aria-labelledby="kvHowTitle">
+    <div class="kv-how-top">
+      <h2 id="kvHowTitle" data-txt="kviz.page.34">Як заміряти штору</h2>
+      <button class="kv-how-x" type="button" aria-label="Закрити">×</button>
+    </div>
+    <div class="kv-how-body">
+      <figure class="kv-how-ph">
+        <picture><source srcset="assets/zamir-foto.webp?v=317" type="image/webp">
+          <img data-img="kviz.zamir" src="assets/zamir-foto.jpg?v=317"
+               alt="Як виміряти рулонну штору: ширина й висота тканини"
+               width="920" height="1104" loading="lazy" decoding="async"></picture>
+      </figure>
+      <div class="kv-how-side">
+        <div class="kv-how-vid" id="kvHowVid" hidden></div>
+        <button class="btn btn-p kv-how-ok" type="button" data-txt="kviz.page.37">Зрозуміло, до розмірів</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script src="assets/config.js?v=317"></script>
+<script src="assets/api.js?v=317"></script>
+<script src="assets/theme.js?v=317"></script>
+<script src="assets/from.js?v=317"></script>
+<script src="assets/chat.js?v=317"></script>
+<script src="assets/site.js?v=317"></script>
+<script src="assets/kviz.js?v=317"></script>
+<script src="assets/np.js?v=317"></script>
+<script src="assets/loader.js?v=317"></script>
+<script>window.API && API.applySettings();</script>
+
+</body>
+</html>
