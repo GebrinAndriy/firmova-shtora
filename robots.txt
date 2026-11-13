@@ -1,0 +1,24 @@
+User-agent: *
+Allow: /
+
+# службові розділи
+Disallow: /admin/
+Disallow: /_unused/
+
+# Друга версія головної відкрита навмисно: її треба вміти
+# перевірити зовнішнім інструментом. Від пошуку вона й так
+# закрита заголовком noindex на рівні прев'ю-адреси.
+
+# доступ для пошукових і AI-ботів (за завданням замовника)
+User-agent: GPTBot
+Allow: /
+User-agent: OAI-SearchBot
+Allow: /
+User-agent: ChatGPT-User
+Allow: /
+User-agent: PerplexityBot
+Allow: /
+User-agent: Google-Extended
+Allow: /
+
+Sitemap: https://www.firmova-shtora.com.ua/sitemap.xml

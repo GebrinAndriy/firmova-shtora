@@ -1,0 +1,13 @@
+{
+  "name": "firmova-shtora",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Сайт «Фірмова Штора»: статичні сторінки плюс серверні ручки на Vercel",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "openai": "^7.23.0"
+  }
+}
