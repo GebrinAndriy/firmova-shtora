@@ -1,0 +1,188 @@
+﻿<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Адмінка — Фірмова Штора</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="/assets/favicon-32.png?v=304" type="image/png">
+<link rel="preload" href="/assets/fonts/manrope-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/inter-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face{font-family:'Inter';font-weight:100 900;font-display:swap;
+  src:url(/assets/fonts/inter-cyrillic.woff2) format('woff2');
+  unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:'Inter';font-weight:100 900;font-display:swap;
+  src:url(/assets/fonts/inter-latin.woff2) format('woff2');
+  unicode-range:U+0000-00FF,U+2000-206F,U+20B4,U+2122}
+@font-face{font-family:'Manrope';font-weight:200 800;font-display:swap;
+  src:url(/assets/fonts/manrope-cyrillic.woff2) format('woff2');
+  unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:'Manrope';font-weight:200 800;font-display:swap;
+  src:url(/assets/fonts/manrope-latin.woff2) format('woff2');
+  unicode-range:U+0000-00FF,U+2000-206F,U+20B4,U+2122}
+</style>
+<script src="/admin/theme-init.js?v=304"></script>
+<link rel="stylesheet" href="/admin/admin.css?v=304">
+</head>
+<body>
+
+<div class="gate" id="gate">
+  <form class="gate-box" id="loginForm" novalidate>
+    <div class="gate-mark">
+      <picture><source srcset="/assets/logo-circle.webp?v=304" type="image/webp">
+      <img src="/assets/logo-circle.png?v=304" alt="" width="34" height="34"></picture>
+      <b>Фірмова Штора</b>
+    </div>
+    <h1>Панель керування</h1>
+    <p class="gate-sub">Введіть пароль, щоб продовжити.</p>
+    <label class="lab" for="pw">Пароль</label>
+    <div class="pw-row">
+      <input type="password" id="pw" autocomplete="current-password" required>
+      <button type="button" id="pwEye" aria-label="Показати пароль" aria-pressed="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/>
+          <circle cx="12" cy="12" r="3.2"/>
+        </svg>
+      </button>
+    </div>
+    <p class="err" id="loginErr"></p>
+    <p class="dbg" id="loginDbg" hidden></p>
+    <button class="btn btn-p" type="submit" id="loginBtn">Увійти</button>
+    <p class="gate-note" id="gateNote"></p>
+  </form>
+</div>
+
+<div class="app" id="app" hidden>
+  <aside class="side">
+    <div class="side-mark">
+      <picture><source srcset="/assets/logo-circle.webp?v=304" type="image/webp">
+      <img src="/assets/logo-circle.png?v=304" alt="" width="30" height="30"></picture>
+      <span><b>Фірмова Штора</b><small>панель керування</small></span>
+    </div>
+
+    <div class="who"><i></i><span id="roleTag">адміністратор</span></div>
+
+    <div class="line-pick" id="linePick">
+      <button type="button" data-line="roller" class="on">Рулонні</button>
+      <button type="button" data-line="daynight" disabled
+              title="Сторінка «Фірмова штора день-ніч» поки не працює">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect width="18" height="11" x="3" y="11" rx="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Фірмова</button>
+    </div>
+    <nav class="side-nav" id="sideNav">
+      <button type="button" data-tab="leads" class="on">
+        <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+        <span>Заявки</span><i class="badge" id="leadCount"></i>
+      </button>
+      <button type="button" data-tab="clients">
+        <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.4"/>
+          <path d="M3 20a6 6 0 0 1 12 0M16.5 11.6a3 3 0 0 0 0-5.2M18.5 19.8a5.6 5.6 0 0 0-2.2-4.3"/></svg>
+        <span>База клієнтів</span><i class="badge" id="clientCount"></i>
+      </button>
+      <button type="button" data-tab="chats">
+        <svg viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+        <span>Історія чатів</span>
+      </button>
+      <button type="button" data-tab="builder">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M7.5 4v5"/></svg>
+        <span>Конструктор</span>
+      </button>
+      <button type="button" data-tab="prices">
+        <svg viewBox="0 0 24 24"><path d="M12 3v18M8 7.5h6.5a2.5 2.5 0 0 1 0 5h-5a2.5 2.5 0 0 0 0 5H16"/></svg>
+        <span>Ціни й лінійки</span>
+      </button>
+      <button type="button" data-tab="fabrics">
+        <svg viewBox="0 0 24 24"><rect x="3.5" y="4" width="17" height="16" rx="2"/><path d="M3.5 9.5h17M3.5 14.5h17"/></svg>
+        <span>Тканини</span>
+      </button>
+      <button type="button" data-tab="texts">
+        <svg viewBox="0 0 24 24"><path d="M4 6.5h16M4 12h16M4 17.5h11"/></svg>
+        <span>Числа й блоки</span>
+      </button>
+      <button type="button" data-tab="photos">
+        <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/>
+          <circle cx="8.5" cy="10" r="1.6"/><path d="m4 17 5-4.5 4 3.5 3-2.5 4 3.5"/></svg>
+        <span>Фото сайту</span>
+      </button>
+      <button type="button" data-tab="contacts">
+        <svg viewBox="0 0 24 24"><path d="M4 5h2l2 5-2 1.5a11 11 0 0 0 5.5 5.5L13 15l5 2v2a2 2 0 0 1-2 2A15 15 0 0 1 3 7a2 2 0 0 1 2-2z"/></svg>
+        <span>Контакти й умови</span>
+      </button>
+      <button type="button" data-tab="system">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.6v3M12 18.4v3M2.6 12h3M18.4 12h3M5.2 5.2l2.1 2.1M16.7 16.7l2.1 2.1M18.8 5.2l-2.1 2.1M7.3 16.7l-2.1 2.1"/></svg>
+        <span>Стан системи</span>
+      </button>
+    </nav>
+    <div class="side-foot">
+      <button type="button" id="thm">Темна тема</button>
+      <a href="/" target="_blank" rel="noopener">Відкрити сайт ↗</a>
+      <button type="button" id="logout">Вийти</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="bar">
+      <h2 id="tabTitle">Заявки</h2>
+      <div class="bar-r">
+        <span class="saved" id="saved"></span>
+        <button class="btn btn-o" type="button" id="reset" hidden>Скасувати</button>
+        <button class="btn btn-p" type="button" id="save" hidden>Зберегти зміни</button>
+      </div>
+    </div>
+
+    <section class="tab on" data-tab="leads">
+
+      <div class="seg" id="kinds">
+        <button type="button" class="on" data-kind="">Усі</button>
+        <button type="button" data-kind="замовлення">Оформлення</button>
+        <button type="button" data-kind="фіксація">Фіксація знижки</button>
+        <button type="button" data-kind="перегляд">Рахували ціну</button>
+        <button type="button" data-kind="чат">З чату</button>
+      </div>
+      <div class="filters" id="filters">
+        <button type="button" class="on" data-status="">Усі статуси</button>
+        <button type="button" data-status="нова">Нові</button>
+        <button type="button" data-status="в роботі">В роботі</button>
+        <button type="button" data-status="підтверджено">Підтверджені</button>
+        <button type="button" data-status="оплачено">Оплачені</button>
+        <button type="button" data-status="закрита">Закриті</button>
+        <button type="button" data-status="невдала">Невдалі</button>
+      </div>
+      <div id="leadList" class="leads"></div>
+      <button class="btn btn-o" type="button" id="more" hidden>Показати ще</button>
+    </section>
+
+    <section class="tab" data-tab="clients"><div id="clientsBox"></div></section>
+    <section class="tab" data-tab="chats"><div id="chatsBox"></div></section>
+    <section class="tab" data-tab="builder"><div id="builderBox"></div></section>
+    <section class="tab" data-tab="prices"><div id="pricesBox"></div></section>
+    <section class="tab" data-tab="fabrics"><div id="fabricsBox"></div></section>
+    <section class="tab" data-tab="texts"><div id="textsBox"></div></section>
+    <section class="tab" data-tab="photos"><div id="photosBox"></div></section>
+    <section class="tab" data-tab="contacts"><div id="contactsBox"></div></section>
+    <section class="tab" data-tab="system"><div id="systemBox"></div></section>
+  </main>
+</div>
+
+<div class="viewer" id="viewer" hidden>
+  <div class="viewer-box" role="dialog" aria-modal="true" aria-labelledby="viewerTitle">
+    <div class="viewer-top">
+      <h3 id="viewerTitle">Розмова</h3>
+      <button type="button" id="viewerX" aria-label="Закрити">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+      </button>
+    </div>
+    <div class="viewer-body" id="viewerBody"></div>
+  </div>
+</div>
+
+<script src="/assets/config.js?v=304"></script>
+<script src="/admin/admin.js?v=304"></script>
+</body>
+</html>

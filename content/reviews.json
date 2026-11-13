@@ -1,0 +1,46 @@
+{
+  "items": [
+    {
+      "type": "photo",
+      "src": "assets/work-mansard-zebra.jpg",
+      "tag": "Наша робота",
+      "title": "Мансардне вікно",
+      "text": "Три стулки нестандартної форми"
+    },
+    {
+      "type": "photo",
+      "src": "assets/work-kitchen-grey.jpg",
+      "tag": "Наша робота",
+      "title": "Кухня, сіра тканина",
+      "text": "Дві стулки, закрита система"
+    },
+    {
+      "type": "photo",
+      "src": "assets/work-zebra-tulle.jpg",
+      "tag": "Наша робота",
+      "title": "Ваніль і тюль",
+      "text": "Поєднання з наявним текстилем"
+    },
+    {
+      "type": "photo",
+      "src": "assets/work-wood-cream.jpg",
+      "tag": "Наша робота",
+      "title": "Дерев'яне вікно",
+      "text": "Кремова тканина, відкрита система"
+    },
+    {
+      "type": "photo",
+      "src": "assets/work-roller-white.jpg",
+      "tag": "Наша робота",
+      "title": "Балконний блок",
+      "text": "Вікно і двері в одному стилі"
+    },
+    {
+      "type": "photo",
+      "src": "assets/work-zebra-black.jpg",
+      "tag": "Наша робота",
+      "title": "Графітова тканина",
+      "text": "Затемнення для спальні"
+    }
+  ]
+}
