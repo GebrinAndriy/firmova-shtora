@@ -1150,8 +1150,9 @@ function submitting(btn, on){
   sending = on;
   btn.disabled = on;
   const label = $('#kvGoLab');
-  if(label) label.textContent = on ? 'Надсилаємо…'
-    : ckMode === 'hold' ? 'Зафіксувати знижку' : 'Оформити замовлення';
+  if(!label) return;
+  if(on){ label.dataset.was = label.textContent; label.textContent = 'Надсилаємо…'; }
+  else label.textContent = label.dataset.was || (ckMode === 'hold' ? 'Зафіксувати знижку' : 'Оформити замовлення');
 }
 function sendFail(box, err){
   let p = box.querySelector('.send-err');
