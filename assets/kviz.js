@@ -1145,14 +1145,15 @@ function send(extra){
   return window.API ? API.sendLead(payload) : Promise.reject(new Error('Немає звʼязку'));
 }
 
+let goLabWas = '';
 function submitting(btn, on){
   if(!btn) return;
   sending = on;
   btn.disabled = on;
   const label = $('#kvGoLab');
   if(!label) return;
-  if(on){ label.dataset.was = label.textContent; label.textContent = 'Надсилаємо…'; }
-  else label.textContent = label.dataset.was || (ckMode === 'hold' ? 'Зафіксувати знижку' : 'Оформити замовлення');
+  if(on){ goLabWas = label.textContent; label.textContent = 'Надсилаємо…'; }
+  else label.textContent = goLabWas || (ckMode === 'hold' ? 'Зафіксувати знижку' : 'Оформити замовлення');
 }
 function sendFail(box, err){
   let p = box.querySelector('.send-err');
