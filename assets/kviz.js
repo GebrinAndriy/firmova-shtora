@@ -61,9 +61,9 @@ const urlFabric = (() => {
 function startFabric(){
   return (urlFabric && CFG.fabrics.some(f => f.id === urlFabric)) ? urlFabric : CFG.fabrics[0].id;
 }
-function blankBlind(){ return { fabric:startFabric(), w:65, h:150 }; }
+function blankBlind(){ return { fabric:startFabric(), w:0, h:0 }; }
 function blank(){
-  return { line:productLine, count:1, whole:false, w:65, h:150,
+  return { line:productLine, count:1, whole:false, w:0, h:0,
            system:'open', fabric:startFabric(), side:'right', options:[],
            blinds:[ blankBlind() ], bi:0, _seen:{0:true} };
 }
@@ -403,8 +403,9 @@ function setBlindLabels(){
 }
 function fillSizeInputs(){
   const w = $('#kvW'), h = $('#kvH');
-  if(w){ w.value = cur.w; w.classList.remove('bad'); }
-  if(h){ h.value = cur.h; h.classList.remove('bad'); }
+  if(w){ w.value = cur.w || ''; w.classList.remove('bad'); }
+  if(h){ h.value = cur.h || ''; h.classList.remove('bad'); }
+  sizeNeed(false);
   setFieldErr('#kvErrW', null); setFieldErr('#kvErrH', null);
   syncProdW();
 }
@@ -635,6 +636,7 @@ function checkSize(silent){
   const ph = fieldProblem(hEl.value.trim(), L.minH, L.maxH, {acc:'висоту', nom:'Висота'});
 
   if(!silent){
+    sizeNeed(!wEl.value.trim() || !hEl.value.trim());
     wEl.classList.toggle('bad', !!pw);
     hEl.classList.toggle('bad', !!ph);
     setFieldErr('#kvErrW', pw);
@@ -652,6 +654,10 @@ function checkSize(silent){
     if(wide){ wide.classList.remove('on'); wide.textContent = ''; }
   }
   return !pw && !ph;
+}
+function sizeNeed(on){
+  const el = $('#kvSizeNeed');
+  if(el) el.hidden = !on;
 }
 function setFieldErr(sel, msg){
   const el = $(sel);
@@ -709,7 +715,7 @@ function resetForm(){
   ['system','fabric','side'].forEach(k=>delete answered[k]);
   ['system','fabric','side'].forEach(syncNext);
   $$('.kv-opt,.kv-fab').forEach(b=>b.classList.remove('on'));
-  $('#kvW').value = 65; $('#kvH').value = 150;
+  $('#kvW').value = ''; $('#kvH').value = ''; sizeNeed(false);
   $$('#kvOptions input').forEach(i=>i.checked = false);
   $('#kvSizeWarn').classList.remove('on');
   $('#kvW').classList.remove('bad'); $('#kvH').classList.remove('bad');
@@ -957,6 +963,8 @@ function howHide(){
 (function(){
   const b = $('#kvHowBtn'), how = $('#kvHow');
   if(b) b.onclick = howShow;
+  const need = $('#kvSizeNeedHow');
+  if(need) need.onclick = howShow;
 
   const ph = how && how.querySelector('.kv-how-ph img');
   if(ph){
@@ -1032,6 +1040,7 @@ $$('[data-next]').forEach(b=>b.onclick = next);
     cur.w = +$('#kvW').value||0;
     cur.h = +$('#kvH').value||0;
     syncProdW();
+    if($('#kvW').value.trim() && $('#kvH').value.trim()) sizeNeed(false);
     if(el.classList.contains('bad')) checkSize();
   };
   el.onblur = ()=> checkSize();
@@ -1066,17 +1075,19 @@ function addToCartQuiet(){
   track('kviz_add_window', {value:priceWin(cur) || 0, total:cart.length});
 }
 
-let ckMode = 'order';
+let ckMode = '';
 function setMode(m){
   if(sending) return;
   ckMode = m === 'hold' ? 'hold' : 'order';
+  const pick = $('#kvPick');
+  if(pick) pick.hidden = true;
   document.querySelectorAll('#kvModes [data-mode]').forEach(b=>{
     const on = b.dataset.mode === ckMode;
     b.classList.toggle('on', on);
     b.setAttribute('aria-checked', String(on));
   });
   document.querySelectorAll('[data-for]').forEach(el=>{
-    el.hidden = el.dataset.for !== ckMode;
+    el.hidden = el.dataset.for !== 'any' && el.dataset.for !== ckMode;
   });
   const lab = $('#kvGoLab');
   if(lab && !sending) lab.textContent = ckMode === 'hold' ? 'Зафіксувати знижку' : 'Оформити замовлення';
@@ -1087,7 +1098,10 @@ function setMode(m){
 const modes = $('#kvModes');
 if(modes) modes.addEventListener('click', e=>{
   const b = e.target.closest('[data-mode]');
-  if(b) setMode(b.dataset.mode);
+  if(!b) return;
+  setMode(b.dataset.mode);
+  const first = $('#kvContacts');
+  if(first) first.scrollIntoView({behavior: calm ? 'auto' : 'smooth', block:'start'});
 });
 
 const payWay = undefined;
@@ -1239,11 +1253,15 @@ $('#kvForm').onsubmit = e => {
   e.preventDefault();
   const btn = $('#kvSubmit');
   if(sending || надіслано || btn?.disabled) return;
-  const name = $('#kvName').value.trim();
+  if(!ckMode){ const m = $('#kvModes'); if(m && m.scrollIntoView) m.scrollIntoView({behavior: calm ? 'auto' : 'smooth', block:'center'}); return; }
+  const first = $('#kvName').value.trim().replace(/\s+/g, ' ');
+  const last = (($('#kvSurname') || {}).value || '').trim().replace(/\s+/g, ' ');
+  const name = (first + ' ' + last).trim();
   const phone = $('#kvPhone').value.replace(/[\s()-]/g,'');
   const city = ($('#kvCity') || {}).value ? $('#kvCity').value.trim() : '';
   const branch = ($('#kvBranch') || {}).value ? $('#kvBranch').value.trim() : '';
-  const okName = name.length >= 2;
+  const okName = first.length >= 2;
+  const okSurname = last.length >= 2;
   const okPhone = /^(\+?38)?0\d{9}$/.test(phone);
   const roller = cart.length && cart.every(c=>c.line === 'roller');
   const hold = ckMode === 'hold';
@@ -1255,12 +1273,14 @@ $('#kvForm').onsubmit = e => {
   const errDays = $('#kvErrDays');
   if(errDays) errDays.style.display = okDays ? 'none' : 'block';
   $('#kvErrName').style.display = okName ? 'none' : 'block';
+  const errSurname = $('#kvErrSurname');
+  if(errSurname) errSurname.style.display = okSurname ? 'none' : 'block';
   $('#kvErrPhone').style.display = okPhone ? 'none' : 'block';
   const errCity = $('#kvErrCity');
   if(errCity) errCity.style.display = okShip ? 'none' : 'block';
-  if(!okName || !okPhone || !okShip || !okDays){
+  if(!okName || !okSurname || !okPhone || !okShip || !okDays){
     clarityEvent('kviz_checkout_invalid');
-    const bad = !okName ? '#kvName' : !okPhone ? '#kvPhone' : !okShip ? '#kvCity' : '#kvDays';
+    const bad = !okName ? '#kvName' : !okSurname ? '#kvSurname' : !okPhone ? '#kvPhone' : !okShip ? '#kvCity' : '#kvDays';
     const el = $(bad); if(el) el.focus();
     return;
   }

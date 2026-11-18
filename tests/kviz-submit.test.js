@@ -15,7 +15,7 @@ function code(start, end) {
 
 function checkout(mode = 'order', overrides = {}) {
   const fields = Object.fromEntries(Object.entries({
-    Name: 'Тест', Phone: '0990000000', City: 'Львів', Branch: '1', Days: '3', ...overrides
+    Name: 'Тест', Surname: 'Тестовий', Phone: '0990000000', City: 'Львів', Branch: '1', Days: '3', ...overrides
   }).map(([name, value]) => ['#kv' + name, { value, focus() {} }]));
   const btn = { disabled: false };
   const form = {};
@@ -28,7 +28,7 @@ function checkout(mode = 'order', overrides = {}) {
   const context = {
     $: selector => ({ '#kvSubmit': btn, '#kvForm': form }[selector] || fields[selector] || { style: {} }),
     cart: [{ line: 'roller' }], ckMode: mode, payWay: 'full', sending: false, надіслано: false,
-    newRid: () => 'test-rid',
+    newRid: () => 'test-rid', calm: true,
     window, cartSum: () => 501,
     localStorage: { getItem: () => context.consent },
     consent: 'all', requestIds: new Map(), metaIds: () => ({}),
@@ -219,4 +219,22 @@ test('only a visible numerical price is recorded once, after consent', () => {
   notify([{ isIntersecting: true, intersectionRatio: 1 }]);
   notify([{ isIntersecting: true, intersectionRatio: 1 }]);
   assert.deepEqual(events, [['event', 'kviz_price_shown']]);
+});
+
+test('first and last name are sent together, and a missing surname blocks the send', async () => {
+  const page = checkout();
+  page.context.response = { ok: true, stored: true, id: 'saved-id' };
+  await page.submit();
+  assert.equal(page.sent[0].payload.name, 'Тест Тестовий');
+
+  const noSurname = checkout('order', { Surname: '' });
+  await noSurname.submit();
+  assert.equal(noSurname.sent.length, 0);
+});
+
+test('nothing is sent until the visitor picks order or discount hold', async () => {
+  const page = checkout('');
+  page.context.response = { ok: true, stored: true, id: 'saved-id' };
+  await page.submit();
+  assert.equal(page.sent.length, 0);
 });

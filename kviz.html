@@ -31,7 +31,7 @@ try{document.documentElement.setAttribute("data-theme",
 <link rel="stylesheet" href="assets/theme.css?v=317">
 <link rel="stylesheet" href="assets/sand.css?v=317">
 <link rel="stylesheet" href="assets/final.css?v=317">
-<link rel="stylesheet" href="assets/kviz.css?v=317">
+<link rel="stylesheet" href="assets/kviz.css?v=321">
 </head>
 <body class="v4 solid-head pal-sand">
 <a href="#main" class="skip">Перейти до вмісту</a>
@@ -120,19 +120,15 @@ try{document.documentElement.setAttribute("data-theme",
           <div class="kv-dims">
             <div class="kv-dim">
               <label for="kvW">Ширина тканини, см</label>
-              <input type="number" id="kvW" inputmode="numeric" value="65"
+              <input type="number" id="kvW" inputmode="numeric" placeholder="Ваш розмір"
                      aria-describedby="kvErrW">
               <p class="fld-err" id="kvErrW" role="alert"></p>
             </div>
             <div class="kv-dim">
               <label for="kvH">Висота тканини, см</label>
-              <input type="number" id="kvH" inputmode="numeric" value="150"
+              <input type="number" id="kvH" inputmode="numeric" placeholder="Ваш розмір"
                      aria-describedby="kvErrH">
               <p class="fld-err" id="kvErrH" role="alert"></p>
-            </div>
-            <div class="kv-dim kv-dim--auto">
-              <label for="kvProdW">Ширина готового виробу, см</label>
-              <input type="number" id="kvProdW" readonly tabindex="-1" aria-readonly="true">
             </div>
           </div>
 
@@ -143,6 +139,8 @@ try{document.documentElement.setAttribute("data-theme",
             <a data-tel href="tel:+380959048745" style="color:inherit;text-decoration:underline">зателефонуйте нам</a>.
           </div>
           <p class="kv-wide" id="kvWideNote"></p>
+          <p class="kv-need" id="kvSizeNeed" role="alert" hidden>Спершу введіть розміри свого вікна.
+            <button type="button" class="kv-need-link" id="kvSizeNeedHow">Як правильно заміряти</button></p>
           <div class="kv-nav"><button class="btn btn-p" type="button" data-next>Далі</button></div>
         </section>
 
@@ -204,7 +202,7 @@ try{document.documentElement.setAttribute("data-theme",
           <p class="ck-lead">Можна оформити замовлення зараз або просто закріпити за собою знижку й повернутись пізніше.</p>
 
           <div class="ck-modes" id="kvModes" role="radiogroup" aria-label="Що робимо">
-            <button class="ck-mode on" type="button" role="radio" aria-checked="true" data-mode="order">
+            <button class="ck-mode" type="button" role="radio" aria-checked="false" data-mode="order">
               <span class="ck-radio" aria-hidden="true"></span>
               <span class="ck-mode-tx"><b>Оформити замовлення</b>
                 <span>Приймемо в роботу й узгодимо розміри</span></span>
@@ -216,25 +214,33 @@ try{document.documentElement.setAttribute("data-theme",
             </button>
           </div>
 
-          <section class="ck-step">
+          <p class="ck-pick" id="kvPick">Оберіть варіант вище, і ми покажемо поля для заповнення.</p>
+
+          <section class="ck-step" id="kvContacts" data-for="any" hidden>
             <h3 class="ck-st"><span class="ck-n">1</span>Контакти</h3>
             <div class="ck-grid">
               <label class="ck-f">
                 <span class="ck-lab">Імʼя</span>
-                <input type="text" id="kvName" placeholder="Ваше імʼя" autocomplete="name"
+                <input type="text" id="kvName" placeholder="Ваше імʼя" autocomplete="given-name"
                        aria-describedby="kvErrName">
               </label>
               <label class="ck-f">
+                <span class="ck-lab">Прізвище</span>
+                <input type="text" id="kvSurname" placeholder="Ваше прізвище" autocomplete="family-name"
+                       aria-describedby="kvErrSurname">
+              </label>
+              <label class="ck-f ck-f--wide">
                 <span class="ck-lab">Телефон</span>
                 <input type="tel" id="kvPhone" placeholder="0XX XXX XX XX" autocomplete="tel"
                        aria-describedby="kvErrPhone">
               </label>
             </div>
             <p class="err" id="kvErrName">Вкажіть, будь ласка, імʼя</p>
+            <p class="err" id="kvErrSurname">Вкажіть, будь ласка, прізвище</p>
             <p class="err" id="kvErrPhone">Вкажіть коректний номер телефону</p>
           </section>
 
-          <section class="ck-step" id="kvShip" data-for="order">
+          <section class="ck-step" id="kvShip" data-for="order" hidden>
             <h3 class="ck-st"><span class="ck-n">2</span>Доставка</h3>
             <div class="ck-carrier">
               <span class="ck-carrier-ic ck-carrier-ic--logo">
@@ -257,7 +263,7 @@ try{document.documentElement.setAttribute("data-theme",
             <p class="err" id="kvErrCity">Вкажіть місто й відділення</p>
           </section>
 
-          <section class="ck-step" id="kvPay" data-for="order">
+          <section class="ck-step" id="kvPay" data-for="order" hidden>
             <h3 class="ck-st"><span class="ck-n">3</span>Оплата</h3>
 
             <p class="ck-pay-lead" data-txt="kviz.pay.lead">Платите після того, як менеджер підтвердить замовлення й звірить розміри.</p>
@@ -285,7 +291,7 @@ try{document.documentElement.setAttribute("data-theme",
             <h3 class="ck-st"><span class="ck-n">2</span>На скільки зафіксувати</h3>
             <label class="ck-f ck-days">
               <span class="ck-lab">Кількість днів, максимум 14</span>
-              <input type="number" id="kvDays" min="1" max="14" step="1" value="7"
+              <input type="number" id="kvDays" min="1" max="14" step="1" placeholder="Від 1 до 14"
                      inputmode="numeric" aria-describedby="kvErrDays">
             </label>
             <p class="err" id="kvErrDays">Вкажіть від 1 до 14 днів</p>
@@ -293,10 +299,10 @@ try{document.documentElement.setAttribute("data-theme",
               Нагадаємо за день до кінця строку.</p>
           </section>
 
-          <button class="btn btn-p ck-go" id="kvSubmit" type="submit">
+          <button class="btn btn-p ck-go" id="kvSubmit" type="submit" data-for="any" hidden>
             <span id="kvGoLab">Оформити замовлення</span><b id="kvGoSum"></b>
           </button>
-          <p class="kvc-priv" data-txt="kviz.page.28">Натискаючи кнопку, ви погоджуєтесь на обробку контактів для цього
+          <p class="kvc-priv" data-for="any" hidden data-txt="kviz.page.28">Натискаючи кнопку, ви погоджуєтесь на обробку контактів для цього
             замовлення. <a href="umovy.html#privacy">Як ми зберігаємо дані</a>.</p>
         </form>
 
@@ -350,7 +356,7 @@ try{document.documentElement.setAttribute("data-theme",
 <script src="assets/from.js?v=317"></script>
 <script src="assets/chat.js?v=317"></script>
 <script src="assets/site.js?v=317"></script>
-<script src="assets/kviz.js?v=320"></script>
+<script src="assets/kviz.js?v=321"></script>
 <script src="assets/np.js?v=317"></script>
 <script src="assets/loader.js?v=317"></script>
 <script>window.API && API.applySettings();</script>
