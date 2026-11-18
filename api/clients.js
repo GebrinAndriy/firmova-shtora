@@ -1,5 +1,6 @@
 import { range, getItem, setItem, isPersistent, hset, hgetall } from '../lib/store.js';
 import { усіСтатуси } from '../lib/statuses.js';
+import { усіПравки, зПравкою } from '../lib/edits.js';
 import { guard } from '../lib/auth.js';
 
 const LIST = 'leads';
@@ -40,14 +41,16 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true });
   }
 
-  const [заявки, статуси, стани] = await Promise.all([
+  const [сирі, статуси, стани, правки] = await Promise.all([
     range(LIST, 0, МЕЖА - 1),
     усіСтатуси().catch(() => ({})),
     Promise.all([
       getItem(СТАН_КЛЮЧ).then(x => x || {}).catch(() => ({})),
       hgetall(СТАН_ХЕШ).catch(() => ({}))
-    ]).then(([старі, нові]) => ({ ...старі, ...нові }))
+    ]).then(([старі, нові]) => ({ ...старі, ...нові })),
+    усіПравки()
   ]);
+  const заявки = сирі.map(l => зПравкою(l, правки[l.id]));
 
   const люди = new Map();
 

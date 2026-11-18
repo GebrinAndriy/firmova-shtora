@@ -1370,7 +1370,9 @@ async function перевіритиНові() {
 
   for (const свіжа of прийшли) {
     const наша = leads.find(l => l.id === свіжа.id);
-    if (наша && наша.status !== свіжа.status) наша.status = свіжа.status;
+    if (!наша) continue;
+    if ((наша.edited && наша.edited.at) !== (свіжа.edited && свіжа.edited.at)) Object.assign(наша, свіжа);
+    else if (наша.status !== свіжа.status) наша.status = свіжа.status;
   }
 
   const нові = прийшли.filter(x => !leads.some(l => l.id === x.id));
@@ -1427,7 +1429,7 @@ function leadDetail(l) {
   const utm = Object.entries(l.utm || {}).filter(([, x]) => x);
 
   const вікна = (l.windows || []).map((w, i) =>
-    '<div class="wfull"><h5>Вікно ' + esc(w.window || i + 1) + '</h5>' +
+    '<div class="wfull"><h5>Штора ' + esc(w.window || i + 1) + '</h5>' +
       '<div class="facts">' +
         факт('Лінійка', w.line) +
         факт('Тканина', w.fabric) +
@@ -1552,23 +1554,42 @@ async function встановитиСтатус(id, значення) {
   }
 }
 
-function виноРядок(w) {
-  const blinds = Array.isArray(w.blinds) ? w.blinds : null;
-  if (blinds && blinds.length > 1) {
-    const голова = '<div class="lead-win"><b>Вікно ' + esc(w.window) + '</b> · ' +
-      esc(w.line || '') + ' · ' + blinds.length + ' штори' +
-      (w.price ? ' — <b>' + esc(грн(w.price)) + ' грн</b>' : '') + '</div>';
-    const рядки = blinds.map(b =>
-      '<div class="lead-win lead-win--sub">Штора ' + esc(b.n) + ' · тканина ' +
-      esc(b.fabricW) + '×' + esc(b.fabricH) + ' см, виріб ' + esc(b.width) + ' см · ' +
-      esc(b.fabric || '') + (b.price ? ' — ' + esc(грн(b.price)) + ' грн' : '') + '</div>').join('');
-    return голова + рядки;
+function штори(l) {
+  const out = [];
+  for (const w of l.windows || []) {
+    const bl = Array.isArray(w.blinds) && w.blinds.length > 1 ? w.blinds : null;
+    if (bl) bl.forEach(b => out.push({
+      line: w.line, fabric: b.fabric || w.fabric, fabricW: b.fabricW, fabricH: b.fabricH || w.fabricH,
+      width: b.width, height: b.fabricH || w.height, price: b.price
+    }));
+    else out.push({
+      line: w.line, fabric: w.fabric, fabricW: w.fabricW, fabricH: w.fabricH,
+      width: w.width, height: w.height, price: w.price
+    });
   }
-  return '<div class="lead-win"><b>Вікно ' + esc(w.window) + '</b> · ' + esc(w.line || '') +
-    ' · тканина ' + esc(w.fabricW) + '×' + esc(w.fabricH) + ' см, виріб ' +
-    esc(w.width) + '×' + esc(w.height) + ' см · ' + esc(w.fabric || '') +
-    (w.system ? ', ' + esc(w.system) : '') +
-    (w.price ? ' — <b>' + esc(грн(w.price)) + ' грн</b>' : '') + '</div>';
+  return out;
+}
+
+function назваТипу(l) {
+  const т = типЗаявки(l);
+  if (т === 'фіксація') return 'Фіксація знижки';
+  if (т === 'чат') return 'Чат';
+  if (т === 'перегляд') return 'Розрахунок';
+  return 'Замовлення';
+}
+
+function рядокШтори(ш, i) {
+  const розм = [
+    ш.fabricW && ш.fabricH ? 'Тканина ' + ш.fabricW + '×' + ш.fabricH + ' см' : '',
+    ш.width && ш.height ? 'виріб ' + ш.width + '×' + ш.height + ' см' : ''
+  ].filter(Boolean).join(' · ');
+  return '<div class="lw">' +
+    '<span class="lw-n">Штора ' + (i + 1) + '</span>' +
+    '<span class="lw-main"><b>' + esc(ш.fabric || 'тканина не вказана') + '</b>' +
+      (ш.line ? '<i> · ' + esc(ш.line) + '</i>' : '') +
+      (розм ? '<small>' + esc(розм) + '</small>' : '') + '</span>' +
+    '<b class="lw-p">' + (ш.price == null ? 'інд. ціна' : esc(грн(ш.price)) + ' грн') + '</b>' +
+  '</div>';
 }
 
 function renderLeads() {
@@ -1600,42 +1621,236 @@ function renderLeads() {
 }
 
 function leadCard(l) {
-  {
-    const tel = String(l.phone || '').replace(/[^\d+]/g, '');
-    const st = l.status || 'нова';
-    return '<article class="lead' + (розкриті.has(l.id) ? ' open' : '') +
-      (свіжі.has(l.id) ? ' fresh' : '') + '">' +
-      '<div class="lead-top">' +
-        '<span class="lead-name">' + esc(l.name || 'Без імені') + '</span>' +
-        '<span class="lead-phone"><a href="tel:' + esc(tel) + '">' + esc(l.phone) + '</a></span>' +
-        '<span class="st ' + (STCLASS[st] || '') + '">' + esc(st) + '</span>' +
-        '<span class="lead-when">' + esc(when(l.at)) + '</span>' +
-      '</div>' +
-      '<div class="lead-meta">' +
-        '<span class="chip">' + esc(l.source || 'сайт') + '</span>' +
-        (l.kind ? '<span class="chip">' + esc(l.kind) + '</span>' : '') +
+  const tel = String(l.phone || '').replace(/[^\d+]/g, '');
+  const st = l.status || 'нова';
+  const адмін = роль !== 'manager';
+  const ш = штори(l);
+  const умова = l.hold
+    ? 'Зафіксувати знижку на ' + l.hold + ' ' + скільки(l.hold, 'день', 'дні', 'днів')
+    : (l.delivery || '');
+  const сума = l.individual ? 'індивідуальна' : (l.total ? грн(l.total) + ' грн' : '');
 
-        (l.individual ? '<span class="chip chip--sum">інд. ціна</span>'
-                      : (l.total ? '<span class="chip chip--sum">' + esc(грн(l.total)) + ' грн</span>' : '')) +
-        (utmМітка(l.utm) ? '<span class="chip chip--utm">📣 ' + esc(utmМітка(l.utm)) + '</span>' : '') +
-      '</div>' +
-      ((l.windows || []).length
-        ? '<div class="lead-wins">' + l.windows.map(виноРядок).join('') + '</div>'
-        : '') +
-      (l.note ? '<div class="lead-note">' + esc(l.note) + '</div>' : '') +
-      '<div class="lead-act">' +
-        статусПікер(l.id, st) +
+  return '<article class="lead lead--m' + (розкриті.has(l.id) ? ' open' : '') +
+    (свіжі.has(l.id) ? ' fresh' : '') + '" data-st="' + esc(STCLASS[st] || '') + '">' +
+    '<div class="lead-top">' +
+      '<span class="lead-name">' + esc(l.name || 'Без імені') + '</span>' +
+      '<span class="lead-phone"><a href="tel:' + esc(tel) + '">' + esc(l.phone) + '</a></span>' +
+      '<span class="lead-type">' + esc(назваТипу(l)) + '</span>' +
+      '<span class="lead-when">' + esc(when(l.at)) + '</span>' +
+    '</div>' +
+    (умова ? '<div class="lead-cond">' + esc(умова) + '</div>' : '') +
+    (ш.length ? '<div class="lws">' + ш.map(рядокШтори).join('') + '</div>' : '') +
+    (!ш.length && l.note ? '<div class="lead-note">' + esc(l.note) + '</div>' : '') +
+    (l.comment ? '<div class="lead-cm"><b>Коментар</b>' + esc(l.comment) + '</div>' : '') +
+    '<div class="lead-sumrow">' +
+      (сума ? '<span class="lead-total"><i>Разом</i> <b>' + esc(сума) + '</b></span>' : '<span></span>') +
+      '<button class="btn btn-o lead-edit" type="button" data-edit="' + esc(l.id) + '">Редагувати й коментар</button>' +
+    '</div>' +
+    (адмін ? leadDetail(l) : '') +
+    '<div class="lead-foot">' +
+      '<span class="lead-foot-lab">Статус:</span>' + статусПікер(l.id, st) +
+      (l.edited && l.edited.at ? '<span class="lead-edited">змінено ' + esc(when(l.edited.at)) +
+        (адмін && l.edited.by ? ' · ' + esc(l.edited.by) : '') + '</span>' : '') +
+      (адмін ? '<span class="lead-foot-adm">' +
         '<button class="more-btn" type="button" data-all="' + esc(l.id) + '">' +
           (розкриті.has(l.id) ? 'Згорнути' : 'Детальніше') + '</button>' +
-        '<button class="del" type="button" data-drop="' + esc(l.id) + '">Видалити</button>' +
+        '<button class="del" type="button" data-drop="' + esc(l.id) + '">Видалити</button></span>' : '') +
+    '</div>' +
+  '</article>';
+}
+
+function тарифШтори(S, fabricId) {
+  const F = S.rollerFormula || {};
+  const list = Array.isArray(S.rollerTariffs) ? S.rollerTariffs : [];
+  const c = fabricId && list.find(t => t && Array.isArray(t.fabrics) && t.fabrics.includes(fabricId) &&
+                                       Array.isArray(t.tiers) && t.tiers.length);
+  return c ? { tiers: c.tiers, fromW: c.fromW != null ? c.fromW : F.fromW }
+           : { tiers: F.tiers, fromW: F.fromW };
+}
+function цінаШтори(w, h, fabricId) {
+  const S = savedFull && savedFull.rollerFormula ? savedFull : (typeof CFG !== 'undefined' ? CFG : {});
+  const T = тарифШтори(S, fabricId);
+  const tiers = Array.isArray(T.tiers) ? T.tiers : [];
+  w = Number(w); h = Number(h);
+  if (!tiers.length || !(w > 0) || !(h > 0)) return null;
+  const до = t => Number(t && t.toH != null ? t.toH : (t && t.toW)) || 0;
+  const maxH = до(tiers[tiers.length - 1]);
+  if (maxH > 0 && h > maxH) return null;
+  const t = tiers.find(x => h <= до(x)) || tiers[tiers.length - 1];
+  const effW = Math.max(w, Number(T.fromW) || 0);
+  return Math.round((Number(t.base) || 0) + (Number(t.perM) || 0) * (effW / 100));
+}
+function тканиниДляПравки() {
+  const S = savedFull && Array.isArray(savedFull.fabrics) ? savedFull : (typeof CFG !== 'undefined' ? CFG : {});
+  return (S.fabrics || []).filter(f => f && f.name).map(f => ({ id: f.id, name: f.name }));
+}
+const запасШирини = () => Number((savedFull && savedFull.productExtraW) != null
+  ? savedFull.productExtraW : (typeof CFG !== 'undefined' ? CFG.productExtraW : 0)) || 0;
+
+let правкаId = null;
+
+function рядокПравки(ш, i) {
+  const тк = тканиниДляПравки();
+  const є = тк.some(f => f.name === ш.fabric);
+  const опції = (ш.fabric && !є ? '<option selected>' + esc(ш.fabric) + '</option>' : '') +
+    (!ш.fabric ? '<option value="" selected disabled>Оберіть тканину</option>' : '') +
+    тк.map(f => '<option value="' + esc(f.name) + '" data-id="' + esc(f.id) + '"' +
+      (f.name === ш.fabric ? ' selected' : '') + '>' + esc(f.name) + '</option>').join('');
+  return '<div class="le-row" data-line="' + esc(ш.line || '') + '">' +
+    '<span class="le-n">Штора ' + (i + 1) + '</span>' +
+    '<label class="le-f le-f--fab"><span class="lab">Тканина</span><select data-k="fabric">' + опції + '</select></label>' +
+    '<label class="le-f"><span class="lab">Ширина, см</span>' +
+      '<input type="number" inputmode="numeric" min="1" data-k="fabricW" value="' + esc(ш.fabricW || '') + '"></label>' +
+    '<label class="le-f"><span class="lab">Висота, см</span>' +
+      '<input type="number" inputmode="numeric" min="1" data-k="fabricH" value="' + esc(ш.fabricH || '') + '"></label>' +
+    '<label class="le-f"><span class="lab">Ціна, грн</span>' +
+      '<input type="number" inputmode="numeric" min="0" data-k="price" placeholder="індивід." value="' +
+      esc(ш.price == null ? '' : ш.price) + '"></label>' +
+    '<button type="button" class="le-x" data-le-del aria-label="Прибрати штору ' + (i + 1) + '">×</button>' +
+  '</div>';
+}
+
+function перенумерувати() {
+  $$('#leRows .le-row').forEach((r, i) => {
+    r.querySelector('.le-n').textContent = 'Штора ' + (i + 1);
+    r.querySelector('[data-le-del]').setAttribute('aria-label', 'Прибрати штору ' + (i + 1));
+  });
+  $$('#leRows [data-le-del]').forEach(b => { b.hidden = $$('#leRows .le-row').length < 2; });
+}
+
+function підсумокПравки() {
+  const box = $('#leTotal');
+  if (!box) return;
+  const ціни = $$('#leRows [data-k="price"]').map(i => i.value.trim());
+  if (!ціни.length) return;
+  box.textContent = ціни.some(v => v === '') ? 'індивідуальна'
+    : грн(ціни.reduce((s, v) => s + (Number(v) || 0), 0)) + ' грн';
+}
+
+function перерахуватиРядок(r) {
+  const ціна = r.querySelector('[data-k="price"]');
+  if (ціна.dataset.manual === '1') return;
+  const sel = r.querySelector('[data-k="fabric"]');
+  const id = sel.selectedOptions[0] && sel.selectedOptions[0].dataset.id;
+  const p = id ? цінаШтори(r.querySelector('[data-k="fabricW"]').value, r.querySelector('[data-k="fabricH"]').value, id) : null;
+  if (id) ціна.value = p == null ? '' : p;
+}
+
+function відкритиПравку(id) {
+  const l = leads.find(x => x.id === id);
+  if (!l) return;
+  правкаId = id;
+  const ш = штори(l);
+  openViewer('Заявка: ' + (l.name || 'без імені'));
+  viewer.dataset.form = '1';
+  $('#viewerBody').innerHTML =
+    '<form class="le" id="leForm" novalidate>' +
+      '<div class="le-grid">' +
+        '<label class="le-f"><span class="lab">Імʼя та прізвище</span>' +
+          '<input type="text" id="leName" maxlength="80" value="' + esc(l.name || '') + '"></label>' +
+        '<label class="le-f"><span class="lab">Телефон</span>' +
+          '<input type="tel" id="lePhone" maxlength="24" value="' + esc(l.phone || '') + '"></label>' +
+        (l.delivery || (типЗаявки(l) === 'замовлення' && ш.length)
+          ? '<label class="le-f le-f--wide"><span class="lab">Доставка</span>' +
+            '<input type="text" id="leDelivery" maxlength="200" value="' + esc(l.delivery || '') + '"></label>' : '') +
       '</div>' +
-      leadDetail(l) +
-    '</article>';
+      (ш.length
+        ? '<h4>Штори</h4><div id="leRows">' + ш.map(рядокПравки).join('') + '</div>' +
+          '<div class="le-sum"><button type="button" class="more-btn" id="leAdd">+ Додати штору</button>' +
+            '<span>Разом: <b id="leTotal"></b></span></div>' +
+          '<p class="hint">Ціна перераховується сама, коли міняєте тканину чи розмір. ' +
+            'Можна вписати свою: тоді вона лишиться як є. Порожня ціна означає «індивідуальна».</p>'
+        : '<div class="le-grid"><label class="le-f"><span class="lab">Сума, грн</span>' +
+            '<input type="number" inputmode="numeric" min="0" id="leSum" value="' + esc(l.total || '') + '"></label></div>') +
+      '<h4>Коментар</h4>' +
+      '<textarea id="leComment" maxlength="2000" placeholder="Що домовились, коли передзвонити, нюанси замовлення">' +
+        esc(l.comment || '') + '</textarea>' +
+      '<p class="err" id="leErr" role="alert"></p>' +
+      '<div class="le-act">' +
+        '<button type="submit" class="btn btn-p" id="leSave">Зберегти</button>' +
+        '<button type="button" class="btn btn-o" id="leCancel">Скасувати</button>' +
+      '</div>' +
+    '</form>';
+  перенумерувати();
+  підсумокПравки();
+
+  const form = $('#leForm');
+  form.addEventListener('input', e => {
+    const r = e.target.closest('.le-row');
+    if (r && e.target.dataset.k === 'price') e.target.dataset.manual = '1';
+    else if (r) перерахуватиРядок(r);
+    підсумокПравки();
+  });
+  form.addEventListener('change', e => {
+    const r = e.target.closest('.le-row');
+    if (r && e.target.dataset.k === 'fabric') { перерахуватиРядок(r); підсумокПравки(); }
+  });
+  form.addEventListener('click', e => {
+    const x = e.target.closest('[data-le-del]');
+    if (x) { x.closest('.le-row').remove(); перенумерувати(); підсумокПравки(); return; }
+    if (e.target.closest('#leAdd')) {
+      const рядки = $$('#leRows .le-row');
+      const ост = рядки[рядки.length - 1];
+      const копія = {
+        line: ост ? ост.dataset.line : 'Класична рулонна',
+        fabric: ост ? ост.querySelector('[data-k="fabric"]').value : ''
+      };
+      $('#leRows').insertAdjacentHTML('beforeend', рядокПравки(копія, рядки.length));
+      перенумерувати();
+      const нов = $$('#leRows .le-row').pop();
+      нов.querySelector('[data-k="fabricW"]').focus();
+      return;
+    }
+    if (e.target.closest('#leCancel')) closeViewer();
+  });
+  form.onsubmit = зберегтиПравку;
+}
+
+async function зберегтиПравку(e) {
+  e.preventDefault();
+  const l = leads.find(x => x.id === правкаId);
+  if (!l) return;
+  const err = $('#leErr');
+  const кнопка = $('#leSave');
+  const extra = запасШирини();
+  const edit = {
+    name: $('#leName').value,
+    phone: $('#lePhone').value,
+    comment: $('#leComment').value
+  };
+  if ($('#leDelivery')) edit.delivery = $('#leDelivery').value;
+  if ($('#leRows')) {
+    edit.windows = $$('#leRows .le-row').map(r => {
+      const v = k => r.querySelector('[data-k="' + k + '"]').value.trim();
+      const w = Math.round(Number(v('fabricW'))) || 0, h = Math.round(Number(v('fabricH'))) || 0;
+      return { line: r.dataset.line, fabric: v('fabric'), fabricW: w, fabricH: h,
+               width: w ? w + extra : 0, height: h, price: v('price') === '' ? null : Number(v('price')) };
+    });
+  } else if ($('#leSum')) {
+    edit.total = $('#leSum').value === '' ? null : Number($('#leSum').value);
+  }
+  err.classList.remove('on');
+  кнопка.disabled = true;
+  кнопка.textContent = 'Зберігаємо…';
+  try {
+    const відп = await api('/api/leads', { method: 'PATCH',
+      body: JSON.stringify({ id: l.id, was: (l.edited && l.edited.at) || '', edit }) });
+    const i = leads.findIndex(x => x.id === l.id);
+    if (i !== -1 && відп && відп.lead) leads[i] = відп.lead;
+    closeViewer();
+    renderLeads();
+  } catch (ex) {
+    err.textContent = ex.message;
+    err.classList.add('on');
+    кнопка.disabled = false;
+    кнопка.textContent = 'Зберегти';
   }
 }
 
 $('#leadList').onclick = async e => {
   if (e.target.closest('.pick')) return;
+  const ред = e.target.closest('[data-edit]');
+  if (ред) { відкритиПравку(ред.dataset.edit); return; }
   const t = e.target.closest('[data-all]');
   if (t) {
     const id = t.dataset.all;
@@ -1929,14 +2144,15 @@ $('#chatsBox').onclick = e => {
 
 const viewer = $('#viewer');
 
-function closeViewer() { viewer.hidden = true; }
+function closeViewer() { viewer.hidden = true; delete viewer.dataset.form; }
 function openViewer(назва) {
   viewer.hidden = false;
+  delete viewer.dataset.form;
   $('#viewerTitle').textContent = назва;
   $('#viewerBody').scrollTop = 0;
 }
 $('#viewerX').onclick = closeViewer;
-viewer.onclick = e => { if (e.target === viewer) closeViewer(); };
+viewer.onclick = e => { if (e.target === viewer && !viewer.dataset.form) closeViewer(); };
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !viewer.hidden) closeViewer(); });
 
 async function openChatView(id) {

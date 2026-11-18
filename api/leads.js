@@ -3,6 +3,7 @@ import { range, count, getItem, removeById, isPersistent, hset, hgetall, hdel, s
 import { усіСтатуси, СТАТУСИ } from '../lib/statuses.js';
 import { capi, metaReady } from '../lib/meta.js';
 import { ga4Purchase, ga4Ready } from '../lib/ga.js';
+import { ПРАВКИ, усіПравки, зПравкою, перевіритиПравку, зберегтиПравку } from '../lib/edits.js';
 
 const LIST = 'leads';
 
@@ -11,15 +12,16 @@ const ПОКУПКИ = 'meta-purch:h',  ПОКУПКИ_СТАРІ = 'meta-purch'
 const ОПЛАЧЕНО = 'оплачено';
 
 export default async function handler(req, res) {
-  if (!(await guard(req, res, 'leads'))) return;
+  const роль = await guard(req, res, 'leads');
+  if (!роль) return;
 
   if (req.method === 'GET') {
     const from = Math.max(0, Number(req.query.from) || 0);
     const size = Math.min(200, Math.max(1, Number(req.query.size) || 50));
     const [items, total] = await Promise.all([range(LIST, from, from + size - 1), count(LIST)]);
-    const statuses = await усіСтатуси();
+    const [statuses, правки] = await Promise.all([усіСтатуси(), усіПравки()]);
     return res.status(200).json({
-      items: items.map(x => ({ ...x, status: statuses[x.id] || x.status || 'нова' })),
+      items: items.map(x => ({ ...зПравкою(x, правки[x.id]), status: statuses[x.id] || x.status || 'нова' })),
       total, from, size, persistent: isPersistent
     });
   }
@@ -28,6 +30,24 @@ export default async function handler(req, res) {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
     if (!body.id) return res.status(400).json({ error: 'Немає id' });
     const id = String(body.id).slice(0, 40);
+
+    if (body.edit && typeof body.edit === 'object') {
+      const lead = (await range(LIST, 0, 4999)).find(l => l.id === id);
+      if (!lead) return res.status(404).json({ error: 'Заявку не знайдено. Можливо, її видалили.' });
+      const правки = await усіПравки();
+      const була = правки[id];
+      if (String(body.was || '') !== String((була && була.at) || '')) {
+        return res.status(409).json({ error: 'Цю заявку щойно змінили з іншого пристрою. Оновіть сторінку й внесіть зміни ще раз.' });
+      }
+      const { правка, error } = перевіритиПравку(body.edit, lead);
+      if (error) return res.status(400).json({ error });
+      правка.at = new Date().toISOString();
+      правка.by = роль === 'manager' ? 'менеджер' : 'адміністратор';
+      await зберегтиПравку(id, правка);
+      const statuses = await усіСтатуси();
+      return res.status(200).json({ ok: true, lead: { ...зПравкою(lead, правка), status: statuses[id] || lead.status || 'нова' } });
+    }
+
     const нов = String(body.status || 'нова').slice(0, 24);
     const було = (await усіСтатуси())[id];
     await hset(СТАТУСИ, id, нов);
@@ -46,7 +66,8 @@ export default async function handler(req, res) {
         let мітка = {};
         try { if (нові[id]) мітка = JSON.parse(нові[id]) || {}; } catch (e) {}
         if (!нові[id] && старі[id] && typeof старі[id] === 'object') мітка = { ...старі[id] };
-        const lead = (await range(LIST, 0, 4999)).find(l => l.id === id);
+        const сирий = (await range(LIST, 0, 4999)).find(l => l.id === id);
+        const lead = сирий && зПравкою(сирий, (await усіПравки())[id]);
         if (!lead) purchase = { error: 'заявку не знайдено' };
         else if (!(Number(lead.total) > 0)) purchase = { error: 'у заявки немає суми' };
         else {
@@ -86,7 +107,7 @@ export default async function handler(req, res) {
     if (!id) return res.status(400).json({ error: 'Потрібен id' });
     const ok = await removeById(LIST, id);
 
-    if (ok) { try { await hdel(СТАТУСИ, id); await hdel(ПОКУПКИ, id); } catch (e) {} }
+    if (ok) { try { await hdel(СТАТУСИ, id); await hdel(ПОКУПКИ, id); await hdel(ПРАВКИ, id); } catch (e) {} }
     return res.status(ok ? 200 : 404).json({ ok });
   }
 

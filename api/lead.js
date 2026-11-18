@@ -89,14 +89,14 @@ async function toTelegram(lead) {
   const чати = [...new Set([...фіксовані, ...підписники.map(String)])];
   if (!чати.length) return { sent: false, reason: 'немає отримувачів' };
 
-  const вікон = (lead.windows || []).length;
+  const штор = (lead.windows || []).reduce((n, w) => n + Math.max(1, (w.blinds || []).length), 0);
   const коли = колиУкраїнською(lead.at);
   const текст = [
     '🪟 <b>Нова заявка</b>' + (коли ? ` · ${html(коли)}` : ''),
     `<b>${html(lead.name || 'Без імені')}</b> · ${html(lead.phone || 'номера немає')}`,
     lead.individual
-      ? `Сума: <b>індивідуальна</b> — порахувати менеджеру` + (вікон ? ` · вікон: ${вікон}` : '')
-      : (lead.total ? `Сума: <b>${цілі(lead.total)} грн</b>` + (вікон ? ` · вікон: ${вікон}` : '') : null),
+      ? `Сума: <b>індивідуальна</b> — порахувати менеджеру` + (штор ? ` · штор: ${штор}` : '')
+      : (lead.total ? `Сума: <b>${цілі(lead.total)} грн</b>` + (штор ? ` · штор: ${штор}` : '') : null),
     lead.kind || lead.source ? html(lead.kind || lead.source) : null,
     '',
     'Подробиці — в адмінці, розділ «Заявки».'
