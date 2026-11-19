@@ -371,6 +371,18 @@ html[data-theme="dark"] .st-call{color:var(--acc)}
 .stat b{display:block;font-family:var(--font-head);font-size:29px;font-weight:800;
   letter-spacing:-.045em;line-height:1.05;font-variant-numeric:tabular-nums}
 .stat span{display:block;font-size:12px;color:var(--muted);margin-top:4px;line-height:1.4}
+.stat-go{font:inherit;color:inherit;text-align:left;cursor:pointer;
+  display:flex;flex-direction:column;justify-content:flex-start;
+  transition:border-color .15s,box-shadow .15s}
+.stat-go:hover{border-color:var(--acc)}
+.stat-go:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.stat-go.on{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc) inset}
+#leadStats{grid-template-columns:repeat(5,minmax(0,1fr))}
+#leadStats:empty{display:none}
+@media (max-width:1100px){
+  #leadStats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #leadStats .stat:first-child{grid-column:1/-1}
+}
 
 .qlist{display:grid;gap:5px}
 .q{display:grid;grid-template-columns:minmax(0,1fr) 104px 34px;gap:12px;align-items:center;

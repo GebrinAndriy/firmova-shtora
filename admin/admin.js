@@ -1290,6 +1290,7 @@ async function renderPhotos() {
 }
 
 let leads = [], from = 0, total = 0, filter = '', kind = '';
+let заявСтат = null;
 
 const STATUS = ['нова', 'в роботі', 'підтверджено', 'оплачено', 'закрита', 'невдала'];
 const STCLASS = {
@@ -1319,6 +1320,7 @@ async function loadLeads(reset) {
   leads = leads.concat(data.items || []);
   total = data.total || 0;
   from += (data.items || []).length;
+  if (data.stats) заявСтат = data.stats;
   $('#more').hidden = from >= total;
   $('#leadCount').textContent = total ? String(total) : '';
   if (!data.persistent) {
@@ -1344,13 +1346,48 @@ $('#kinds').onclick = e => {
   renderLeads();
 };
 
+function обратиСтатус(s) {
+  filter = s;
+  $$('#filters button').forEach(x => x.classList.toggle('on', x.dataset.status === s));
+  renderLeads();
+}
+
 $('#filters').onclick = e => {
   const b = e.target.closest('[data-status]');
-  if (!b) return;
-  filter = b.dataset.status;
-  $$('#filters button').forEach(x => x.classList.toggle('on', x === b));
-  renderLeads();
+  if (b) обратиСтатус(b.dataset.status);
 };
+
+$('#leadStats').onclick = e => {
+  const b = e.target.closest('[data-st-go]');
+  if (b) обратиСтатус(b.dataset.stGo === filter ? '' : b.dataset.stGo);
+};
+
+function змінитиСтат(lead, було, стало) {
+  const з = заявСтат;
+  if (!з || було === стало) return;
+  з.st[було] = Math.max(0, (з.st[було] || 0) - 1);
+  з.st[стало] = (з.st[стало] || 0) + 1;
+  const сума = Number(lead && lead.total) > 0 ? Number(lead.total) : 0;
+  if (було === 'оплачено') з.оплаченоГрн -= сума;
+  if (стало === 'оплачено') з.оплаченоГрн += сума;
+}
+
+function renderLeadStats() {
+  const box = $('#leadStats');
+  const з = заявСтат;
+  if (!з || !з.всього) { box.innerHTML = ''; return; }
+  const n = s => з.st[s] || 0;
+  const відс = k => ' · ' + Math.round(k / з.всього * 100) + '%';
+  const плитка = (st, число, підпис) =>
+    '<button type="button" class="stat stat-go' + (st === filter ? ' on' : '') + '" data-st-go="' + esc(st) + '">' +
+      '<b>' + грн(число) + '</b><span>' + підпис + '</span></button>';
+  box.innerHTML =
+    плитка('', з.всього, 'заявок усього') +
+    плитка('нова', n('нова'), 'нових, ще не взяли в роботу') +
+    плитка('оплачено', n('оплачено'), 'оплачених' + відс(n('оплачено'))) +
+    плитка('оплачено', Math.round(з.оплаченоГрн), 'оплачено на суму, грн') +
+    плитка('невдала', n('невдала'), 'провалених' + відс(n('невдала')));
+}
 
 const ЖИВО_МС = 20000;
 let живийТаймер = null;
@@ -1366,6 +1403,7 @@ async function перевіритиНові() {
 
   const прийшли = d.items || [];
   total = d.total || total;
+  if (d.stats) заявСтат = d.stats;
   $('#leadCount').textContent = total ? String(total) : '';
 
   for (const свіжа of прийшли) {
@@ -1535,7 +1573,7 @@ document.addEventListener('keydown', e => {
 async function встановитиСтатус(id, значення) {
   const lead = leads.find(l => l.id === id);
   const було = lead ? lead.status : null;
-  if (lead) lead.status = значення;
+  if (lead) { змінитиСтат(lead, було || 'нова', значення); lead.status = значення; }
   renderLeads();
   try {
     const відп = await api('/api/leads', { method: 'PATCH', body: JSON.stringify({ id, status: значення }) });
@@ -1548,7 +1586,7 @@ async function встановитиСтатус(id, значення) {
         : 'Відправка покупки в аналітику:\n\nMeta: ' + рядок(п.meta) + '\nGA4: ' + рядок(п.ga));
     }
   } catch (err) {
-    if (lead) lead.status = було;
+    if (lead) { змінитиСтат(lead, значення, було || 'нова'); lead.status = було; }
     renderLeads();
     alert('Не вдалося змінити статус: ' + err.message);
   }
@@ -1593,6 +1631,7 @@ function рядокШтори(ш, i) {
 }
 
 function renderLeads() {
+  renderLeadStats();
   const box = $('#leadList');
   const shown = leads
     .filter(l => !filter || (l.status || 'нова') === filter)

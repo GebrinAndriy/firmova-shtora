@@ -111,3 +111,18 @@ test('the client base uses the edited name and total; deleting drops the edit', 
   assert.equal(list.data.items[0].comment, undefined);
   assert.equal(list.data.items[0].name, 'Клієнтка');
 });
+
+test('the first page carries totals over all leads: paid, failed and the paid sum', async () => {
+  await push('leads', { ...lead(), id: 'lead-2', total: 500 });
+  await push('leads', { ...lead(), id: 'lead-3', total: 300 });
+  await call(leads, { method: 'PATCH', body: { id: 'lead-1', was: '', edit: edit() } });
+  await call(leads, { method: 'PATCH', body: { id: 'lead-1', status: 'оплачено' } });
+  await call(leads, { method: 'PATCH', body: { id: 'lead-2', status: 'невдала' } });
+  const r = await call(leads, { query: { from: 0, size: 1 } });
+  assert.equal(r.data.items.length, 1, 'the page is still paged');
+  assert.deepEqual(r.data.stats, { всього: 3, st: { 'нова': 1, 'оплачено': 1, 'невдала': 1 }, оплаченоГрн: 1113 });
+  const next = await call(leads, { query: { from: 1, size: 50 } });
+  assert.equal(next.data.stats, undefined);
+  for (const id of ['lead-2', 'lead-3']) await call(leads, { method: 'DELETE', query: { id } });
+  await call(leads, { method: 'PATCH', body: { id: 'lead-1', status: 'нова' } });
+});

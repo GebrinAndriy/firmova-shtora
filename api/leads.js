@@ -11,6 +11,16 @@ const ПОКУПКИ = 'meta-purch:h',  ПОКУПКИ_СТАРІ = 'meta-purch'
 
 const ОПЛАЧЕНО = 'оплачено';
 
+export function зведення(всі) {
+  const st = {};
+  let оплаченоГрн = 0;
+  for (const l of всі) {
+    st[l.status] = (st[l.status] || 0) + 1;
+    if (l.status === ОПЛАЧЕНО && Number(l.total) > 0) оплаченоГрн += Number(l.total);
+  }
+  return { всього: всі.length, st, оплаченоГрн };
+}
+
 export default async function handler(req, res) {
   const роль = await guard(req, res, 'leads');
   if (!роль) return;
@@ -18,10 +28,18 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     const from = Math.max(0, Number(req.query.from) || 0);
     const size = Math.min(200, Math.max(1, Number(req.query.size) || 50));
-    const [items, total] = await Promise.all([range(LIST, from, from + size - 1), count(LIST)]);
     const [statuses, правки] = await Promise.all([усіСтатуси(), усіПравки()]);
+    const повна = x => ({ ...зПравкою(x, правки[x.id]), status: statuses[x.id] || x.status || 'нова' });
+    if (from === 0) {
+      const всі = (await range(LIST, 0, 4999)).map(повна);
+      return res.status(200).json({
+        items: всі.slice(0, size), total: всі.length, from, size, persistent: isPersistent,
+        stats: зведення(всі)
+      });
+    }
+    const [items, total] = await Promise.all([range(LIST, from, from + size - 1), count(LIST)]);
     return res.status(200).json({
-      items: items.map(x => ({ ...зПравкою(x, правки[x.id]), status: statuses[x.id] || x.status || 'нова' })),
+      items: items.map(повна),
       total, from, size, persistent: isPersistent
     });
   }
