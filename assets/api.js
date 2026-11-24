@@ -556,6 +556,27 @@ return { sendLead, applySettings, fabricBg, msgLink, msgHref, goMessenger, rende
 
   const згодаЄ = () => { try{ return localStorage.getItem(КЛЮЧ) === 'all'; }catch(e){ return false; } };
 
+  // Meta Pixel and its PageView load for everyone, before the banner choice, so ad
+  // landing-page views are counted. Every other Meta event (ViewContent, Lead,
+  // InitiateCheckout…) waits for «Прийняти все» via window.__fbReady, as before.
+  let пікс = null;
+  function пікселя(){
+    if(пікс !== null) return пікс;
+    const mp = String(((typeof CFG !== 'undefined' && CFG.analytics) || {}).metaPixel || '').trim();
+    пікс = /^\d{6,}$/.test(mp);
+    if(!пікс) return false;
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+      n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
+      (window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    if(!згодаЄ()) fbq('set', 'autoConfig', false, mp);
+    fbq('init', mp);
+    fbq('track', 'PageView', {}, { eventID: metaId() });
+    return true;
+  }
+  пікселя();
+
   let started = false;
   function аналітика(){
     if(started) return;
@@ -597,15 +618,7 @@ return { sendLead, applySettings, fabricBg, msgLink, msgHref, goMessenger, rende
       document.dispatchEvent(new Event('fsh-clarity-ready'));
     }
 
-    const mp = String(A.metaPixel || '').trim();
-    if(/^\d{6,}$/.test(mp)){
-      !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-        n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
-        n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
-        t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
-        (window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
-      fbq('init', mp);
-      fbq('track', 'PageView', {}, { eventID: metaId() });
+    if(пікселя()){
       window.__fbReady = true;
 
       const рулонка = document.body && document.body.dataset.onlyLine === 'roller';
