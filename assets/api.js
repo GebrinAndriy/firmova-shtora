@@ -605,6 +605,7 @@ return { sendLead, applySettings, fabricBg, msgLink, msgHref, goMessenger, rende
         t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
         (window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
       fbq('init', mp);
+      fbq('track', 'PageView', {}, { eventID: metaId() });
       window.__fbReady = true;
 
       const рулонка = document.body && document.body.dataset.onlyLine === 'roller';
