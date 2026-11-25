@@ -75,3 +75,19 @@ test('the report needs a login; a flood from one address stops counting', async 
   const day = (await call({ query: { days: '1' }, auth: true })).data.days.at(-1);
   assert.equal(day.other.mode, 40);
 });
+
+test('visits from a logged-in admin or manager are not counted', async () => {
+  const before = (await call({ query: { days: '1' }, auth: true })).data.days.at(-1).other.size;
+  const r = await call({ method: 'POST', body: { s: 'size', src: 'other' }, auth: true, ip: '10.1.2.3' });
+  assert.equal(r.code, 204);
+  const after = (await call({ query: { days: '1' }, auth: true })).data.days.at(-1).other.size;
+  assert.equal(after, before);
+});
+
+test('a lead opened inside Instagram or Facebook counts as Facebook / Instagram', async () => {
+  const at = new Date().toISOString();
+  await push('leads', { id: 'f-ig', at, source: 'Квіз-калькулятор', total: 650, utm: {}, came: 'instagram' });
+  await hset('lead-status:h', 'f-ig', 'оплачено');
+  const r = await call({ query: { days: '1' }, auth: true });
+  assert.equal(r.data.paidList.find(x => x.id === 'f-ig').src, 'ads');
+});

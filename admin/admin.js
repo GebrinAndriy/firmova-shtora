@@ -1513,11 +1513,14 @@ function leadDetail(l) {
     '</div>' +
     (вікна ? '<h4>Склад замовлення</h4>' + вікна : '') +
     '<h4>Що людина робила на сайті</h4>' + слід +
-    (utm.length ? '<h4>Реклама</h4><div class="facts">' +
+    (utm.length || l.came ? '<h4>Реклама</h4><div class="facts">' +
+      (l.came ? факт('Прийшла з', ПРИЙШЛА[l.came] || l.came) : '') +
       utm.map(([k, x]) => факт(k, x)).join('') + '</div>' : '') +
     (l.note ? '<h4>Нотатка</h4><div class="lead-note">' + esc(l.note) + '</div>' : '') +
   '</div>';
 }
+
+const ПРИЙШЛА = { facebook: 'Facebook', instagram: 'Instagram', google: 'Google', site: 'іншого сайту' };
 
 function статусПікер(id, зараз) {
   return пікер('lead', id, зараз, STATUS, STCLASS);
@@ -2168,12 +2171,12 @@ function renderFunnel() {
           '<div class="stat"><b>' + грн(сумаОпл) + '</b><span>оплачено на суму, грн</span></div>' +
           '<div class="stat"><b>' + грн(оплати.length) + '</b><span>' + скільки(оплати.length, 'оплачене замовлення', 'оплачені замовлення', 'оплачених замовлень') + '</span></div>' +
           '<div class="stat"><b>' + грн(сумаОпл / оплати.length) + '</b><span>середній чек, грн</span></div>' +
-          (воронкаДж ? '' : '<div class="stat"><b>' + грн(зРекл) + '</b><span>з них від людей з реклами, грн</span></div>') +
+          (воронкаДж ? '' : '<div class="stat"><b>' + грн(зРекл) + '</b><span>з них від людей з Facebook / Instagram, грн</span></div>') +
         '</div>' +
         '<div class="fn-plist">' + оплати.map(x =>
           '<div class="fn-p"><span class="fn-p-when">' + esc(when(x.at)) + '</span>' +
           '<b class="fn-p-name">' + esc(x.name || 'Без імені') + '</b>' +
-          '<span class="fn-p-src fn-p-src--' + (x.src === 'ads' ? 'ads' : 'other') + '">' + (x.src === 'ads' ? 'з реклами' : 'інше') +
+          '<span class="fn-p-src fn-p-src--' + (x.src === 'ads' ? 'ads' : 'other') + '">' + (x.src === 'ads' ? 'FB / Instagram' : 'інше') +
             (x.from && x.from !== 'калькулятор' ? ' · ' + esc(x.from) : '') + '</span>' +
           '<b class="fn-p-sum">' + грн(x.total) + ' грн</b></div>').join('') + '</div>'
       : '<div class="empty">За цей період оплачених замовлень ще немає.</div>') +
@@ -2195,13 +2198,15 @@ function renderFunnel() {
     '<div class="toolbar">' +
       '<div class="seg" id="fnDays">' + [[1, 'Сьогодні'], [7, '7 днів'], [30, '30 днів'], [90, '90 днів']].map(([n, t]) =>
         '<button type="button" data-days="' + n + '"' + (n === воронкаДні ? ' class="on"' : '') + '>' + t + '</button>').join('') + '</div>' +
-      '<div class="seg" id="fnSrc">' + [['', 'Усі'], ['ads', 'З реклами'], ['other', 'Інші']].map(([v, t]) =>
+      '<div class="seg" id="fnSrc">' + [['', 'Усі'], ['ads', 'З Facebook / Instagram'], ['other', 'Інші']].map(([v, t]) =>
         '<button type="button" data-src="' + v + '"' + (v === воронкаДж ? ' class="on"' : '') + '>' + t + '</button>').join('') + '</div>' +
     '</div>' +
     '<div class="card"><h3>Шлях людей на сайті</h3>' +
       '<p class="hint">Скільки людей дійшли до кожного кроку. Рахуємо без cookie й без особистих даних: ' +
       'одна вкладка браузера — одна людина, тож бачимо всіх, а не лише тих, хто прийняв cookie. ' +
-      '«З реклами» — ті, хто прийшов за посиланням з Facebook чи Instagram.' +
+      '«З Facebook / Instagram» — ті, хто прийшов за рекламним посиланням або відкрив сайт у застосунку Facebook чи Instagram. ' +
+      '«Інші» — Google, набрали адресу самі, перейшли з іншого сайту або спершу побачили рекламу, а зайшли пізніше з іншого браузера. ' +
+      'Ваші власні візити й візити менеджерів, коли ви увійшли в адмінку на цьому пристрої, не рахуються.' +
       (d.since ? ' Лічильник працює з ' + esc(when(d.since)) + ': заявки й оплати в цих кроках рахуємо з того ж моменту.' : '') +
       '</p>' +
       (перший || з.lead ? '<div class="fns">' + рядки + '</div>'

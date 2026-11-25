@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { guard } from '../lib/auth.js';
+import { guard, sessionRole } from '../lib/auth.js';
 import { hincr, hall, bump, range, setOnce, getRaw } from '../lib/store.js';
 import { усіСтатуси } from '../lib/statuses.js';
 import { усіПравки, зПравкою } from '../lib/edits.js';
@@ -28,9 +28,12 @@ function останніДні(n, now = new Date()) {
   return out;
 }
 
+// 'ads' = came from Facebook / Instagram: an ad link (fbclid / utm) or the visitor
+// opened the site inside those apps or from their pages.
 export function джерелоЗаявки(l) {
   const u = (l && l.utm) || {};
-  return u.fbclid || /^(fb|facebook|ig|instagram|meta)/i.test(u.utm_source || '') ? 'ads' : 'other';
+  return u.fbclid || /^(fb|facebook|ig|instagram|meta)/i.test(u.utm_source || '') ||
+    l.came === 'facebook' || l.came === 'instagram' ? 'ads' : 'other';
 }
 
 export default async function handler(req, res) {
@@ -40,6 +43,8 @@ export default async function handler(req, res) {
     const крок = b && String(b.s || ''), дж = b && String(b.src || '');
     if (!КРОКИ.includes(крок) || !ДЖЕРЕЛА.includes(дж)) return res.status(400).json({ error: 'bad step' });
     if (БОТИ.test(String(req.headers['user-agent'] || ''))) return res.status(204).end();
+    // The owner and managers browsing their own site are not visitors.
+    try { if (await sessionRole(req)) return res.status(204).end(); } catch (e) {}
 
     const ip = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || 'none';
     const ключ = 'fn:rl:' + createHash('sha256').update(ip).digest('hex').slice(0, 16);

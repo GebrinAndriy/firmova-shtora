@@ -19,6 +19,34 @@
     }catch(e){}
     return {};
   };
+
+  // Where the visitor came from when there is no ad tag in the link: inside the
+  // Facebook / Instagram app (its in-app browser) or from their sites, or Google.
+  // Kept 30 days like the UTM tags, so a later order still knows it.
+  const ДЕ = 'fsh_came_v1';
+  const звідки = () => {
+    const ua = navigator.userAgent || '';
+    if(/Instagram/i.test(ua)) return 'instagram';
+    if(/FBAN|FBAV|FB_IAB|FB4A|FBIOS|FBSS|Messenger/i.test(ua)) return 'facebook';
+    let host = '';
+    try{ host = document.referrer ? new URL(document.referrer).hostname : ''; }catch(e){}
+    if(!host || host === location.hostname) return '';
+    if(/(^|\.)instagram\.com$/i.test(host)) return 'instagram';
+    if(/(^|\.)(facebook\.com|fb\.com|fb\.me|messenger\.com)$/i.test(host)) return 'facebook';
+    if(/(^|\.)google\./i.test(host)) return 'google';
+    return 'site';
+  };
+  try{
+    const тут = звідки();
+    if(тут) localStorage.setItem(ДЕ, JSON.stringify({ t: Date.now(), came: тут }));
+  }catch(e){}
+  window.fshCame = function(){
+    try{
+      const d = JSON.parse(localStorage.getItem(ДЕ) || 'null');
+      if(d && d.came && Date.now() - d.t < ЖИТТЯ) return String(d.came);
+    }catch(e){}
+    return звідки();
+  };
 })();
 
 // Anonymous funnel counter for the admin's «Воронка» tab: once per browser tab and
@@ -29,7 +57,9 @@
   const ДЕ = 'fsh_steps';
   const зРеклами = () => {
     const u = window.fshUtm ? window.fshUtm() : {};
-    return !!(u.fbclid || /^(fb|facebook|ig|instagram|meta)/i.test(u.utm_source || ''));
+    const came = window.fshCame ? window.fshCame() : '';
+    return !!(u.fbclid || /^(fb|facebook|ig|instagram|meta)/i.test(u.utm_source || '') ||
+              came === 'facebook' || came === 'instagram');
   };
   let вКадрі = false;
   try{ вКадрі = window.top !== window; }catch(e){ вКадрі = true; }
@@ -61,7 +91,8 @@ async function sendLead(payload){
   try { visit = typeof window.visitData === 'function' ? window.visitData(payload && payload.source) : null; }
   catch (e) {}
   const body = Object.assign({ page: location.pathname, visit,
-                               utm: window.fshUtm ? window.fshUtm() : {} }, payload);
+                               utm: window.fshUtm ? window.fshUtm() : {},
+                               came: window.fshCame ? window.fshCame() : '' }, payload);
   const r = await fetch(ENDPOINT, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

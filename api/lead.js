@@ -242,6 +242,7 @@ export default async function handler(req, res) {
     delivery: clean(body.delivery, 200),
     hold:   Math.round(Number(body.hold) || 0) || null,
     utm:    рекламні(body.utm),
+    came:   ['facebook', 'instagram', 'google', 'site'].includes(body.came) ? body.came : '',
 
     ga_cid: clean(body.ga_cid, 60),
 

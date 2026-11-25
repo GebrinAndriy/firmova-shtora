@@ -175,3 +175,11 @@ test('Vercel rejects a write without persistent storage', () => {
   assert.equal(response.status, 503);
   assert.equal(response.data.stored, undefined);
 });
+
+test('the lead keeps where the visitor came from, and drops anything unknown', async () => {
+  assertSaved(await submit({ ...body, came: 'instagram' }));
+  assert.equal(JSON.parse(leads[0]).came, 'instagram');
+  leads.length = 0; keys.clear();
+  assertSaved(await submit({ ...body, rid: 'другий', came: '<script>' }));
+  assert.equal(JSON.parse(leads[0]).came, '');
+});
