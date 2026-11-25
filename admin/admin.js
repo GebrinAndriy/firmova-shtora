@@ -2102,16 +2102,37 @@ const ВОРОНКА = [
 ];
 let воронкаДні = 7, воронкаДж = '', воронкаДані = null;
 
-async function loadFunnel() {
+let воронкаЙде = false, воронкаКоли = null, воронкаТаймер = null;
+const ВОРОНКА_МС = 10000;
+
+function воронкаВідкрита() {
+  const t = document.querySelector('.tab[data-tab="funnel"]');
+  return !!(t && t.classList.contains('on')) && !document.hidden && gate.hidden !== false;
+}
+
+function крутити(on) {
+  const b = $('#fnRefresh');
+  if (b) b.classList.toggle('is-busy', on);
+}
+
+// тихо = the 10-second auto refresh: on an error it keeps what is on screen.
+async function loadFunnel(тихо) {
   const box = $('#funnelBox');
+  if (воронкаЙде) return;
+  воронкаЙде = true; крутити(true);
   if (!воронкаДані) box.innerHTML = '<div class="empty">Завантажуємо…</div>';
+  const дні = воронкаДні;
   try {
-    воронкаДані = await api('/api/funnel?days=' + воронкаДні);
+    const d = await api('/api/funnel?days=' + дні);
+    if (дні === воронкаДні) { воронкаДані = d; воронкаКоли = new Date(); }
   } catch (err) {
-    box.innerHTML = '<div class="empty">Не вдалося завантажити воронку: ' + esc(err.message) + '</div>';
+    воронкаЙде = false; крутити(false);
+    if (!тихо || !воронкаДані) box.innerHTML = '<div class="empty">Не вдалося завантажити воронку: ' + esc(err.message) + '</div>';
     return;
   }
+  воронкаЙде = false;
   renderFunnel();
+  if (!воронкаТаймер) воронкаТаймер = setInterval(() => { if (воронкаВідкрита()) loadFunnel(true); }, ВОРОНКА_МС);
 }
 
 const деньКиєваАдм = iso => new Intl.DateTimeFormat('en-CA', {
@@ -2194,12 +2215,20 @@ function renderFunnel() {
       }).join('') +
     '</tbody></table></div></div>' : '';
 
+  const вбік = (box.querySelector('.fn-tbl-wrap') || {}).scrollLeft || 0;
   box.innerHTML =
     '<div class="toolbar">' +
       '<div class="seg" id="fnDays">' + [[1, 'Сьогодні'], [7, '7 днів'], [30, '30 днів'], [90, '90 днів']].map(([n, t]) =>
         '<button type="button" data-days="' + n + '"' + (n === воронкаДні ? ' class="on"' : '') + '>' + t + '</button>').join('') + '</div>' +
       '<div class="seg" id="fnSrc">' + [['', 'Усі'], ['ads', 'З Facebook / Instagram'], ['other', 'Інші']].map(([v, t]) =>
         '<button type="button" data-src="' + v + '"' + (v === воронкаДж ? ' class="on"' : '') + '>' + t + '</button>').join('') + '</div>' +
+      '<div class="fn-live">' +
+        (воронкаКоли ? '<span class="fn-upd">оновлено о ' +
+          esc(воронкаКоли.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit', second: '2-digit' })) + '</span>' : '') +
+        '<button type="button" class="fn-refresh" id="fnRefresh" title="Оновити" aria-label="Оновити">' +
+          '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg>' +
+        '</button>' +
+      '</div>' +
     '</div>' +
     '<div class="card"><h3>Шлях людей на сайті</h3>' +
       '<p class="hint">Скільки людей дійшли до кожного кроку. Рахуємо без cookie й без особистих даних: ' +
@@ -2225,6 +2254,10 @@ function renderFunnel() {
     воронкаДж = b.dataset.src;
     renderFunnel();
   };
+  $('#fnRefresh').onclick = () => loadFunnel(false);
+  крутити(воронкаЙде);
+  const табл2 = box.querySelector('.fn-tbl-wrap');
+  if (табл2 && вбік) табл2.scrollLeft = вбік;
 }
 
 let чати = [], чатВід = 0, чатВсього = 0;
