@@ -216,7 +216,7 @@ async function start() {
   base = clone(typeof CFG !== 'undefined' ? CFG : {});
   draft = clone(base);
   try {
-    const saved = await api('/api/settings');
+    const saved = await api('/api/settings?fresh=1');
     deepMerge(draft, saved || {});
     savedAt = (saved && saved.savedAt) || null;
   } catch (e) {}
@@ -471,7 +471,7 @@ $('#reset').onclick = () => {
   if (!dirty) return;
   if (!confirm('Скасувати всі незбережені зміни?')) return;
   draft = clone(base);
-  api('/api/settings').then(saved => {
+  api('/api/settings?fresh=1').then(saved => {
       deepMerge(draft, saved || {});
       savedAt = (saved && saved.savedAt) || savedAt;
     })

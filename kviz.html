@@ -2,7 +2,6 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<style id="fshBoot">html.fsh-boot body,html.fsh-wait body{visibility:hidden}html.fsh-boot::before{content:"";position:fixed;inset:0;z-index:2147483646;background:#2A231C}html.fsh-boot::after{content:"";position:fixed;z-index:2147483647;left:50%;top:50%;width:54px;height:54px;margin:-27px;border-radius:50%;border:3px solid rgba(239,176,106,.25);border-top-color:#EFB06A;animation:fshspin .7s linear infinite}@keyframes fshspin{to{transform:rotate(360deg)}}html.fsh-boot-off body{visibility:visible}html.fsh-boot-off::before,html.fsh-boot-off::after{opacity:0;transition:opacity .25s ease;pointer-events:none}</style><script>try{var h=document.documentElement;if(sessionStorage.getItem("fsh_seen")!=="1"){h.classList.add("fsh-boot");setTimeout(function(){h.classList.remove("fsh-boot")},4000);}else{h.classList.add("fsh-wait");setTimeout(function(){h.classList.remove("fsh-wait")},1500);}}catch(e){}</script>
 
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://*.clarity.ms https://connect.facebook.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://*.clarity.ms https://c.bing.com https://connect.facebook.net https://www.facebook.com; frame-src https://www.youtube-nocookie.com; media-src 'self' https:; base-uri 'self'; object-src 'none'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -80,7 +79,7 @@ try{document.documentElement.setAttribute("data-theme",
         <section class="kv-q" data-q="fabric">
           <span class="kv-badge"></span>
           <h2 data-txt="kviz.page.10">Оберіть тканину</h2>
-          <p class="hint" data-txt="kviz.page.11">Від світлопрозорої до повного затемнення. Колір одразу зʼявиться на візуалізації.</p>
+          <p class="hint" data-txt="kviz.page.11">Натисніть на фото, щоб побачити тканину ближче, і тисніть «Далі»</p>
           <p class="hint kv-blind-lab" id="kvFabBlind"></p>
 
           <div class="kv-fabpick">
@@ -88,11 +87,11 @@ try{document.documentElement.setAttribute("data-theme",
               <span class="kv-fabimg" id="kvFabImg" data-empty="Тут зʼявиться обрана тканина">
                 <span class="ff-win" aria-hidden="true"></span>
                 <span class="ff-tex" aria-hidden="true"></span>
-                <b class="ff-hint"><span class="ff-hint-pc" data-txt="kviz.page.35">Наведіть — тканина зблизька</span><span class="ff-hint-mob" data-txt="kviz.page.36">Натисніть — тканина зблизька</span></b>
+                <b class="ff-hint"><span class="ff-hint-pc" data-txt="kviz.page.35">Наведіть — тканина зблизька</span><span class="ff-hint-mob" data-txt="kviz.page.36">Натисніть👆️️️️️️</span></b>
               </span>
               <figcaption>
                 <b id="kvFabName"></b>
-                <span id="kvFabTrans"></span>
+                <span id="kvFabTrans">М’яко розсіює сонячне світло, зберігає кімнату <br>світлою та захищає від сторонніх поглядів удень.</span>
                 <span class="kv-fabprice" id="kvFabPrice"></span>
               </figcaption>
             </figure>
@@ -101,7 +100,7 @@ try{document.documentElement.setAttribute("data-theme",
               <div class="fsel" id="kvFabSel">
                 <button class="fsel-btn" type="button" aria-haspopup="listbox" aria-expanded="false">
                   <span class="fsel-sw" aria-hidden="true"></span>
-                  <span class="fsel-tx"><b>Оберіть тканину</b><span>усі відтінки каталогу</span></span>
+                  <span class="fsel-tx"><b>Оберіть тканину</b><span>Обраний колір. Щоб змінити тисни 👉️️️️️️</span></span>
                   <span class="fsel-arw" aria-hidden="true"></span>
                 </button>
                 <div class="fsel-pop" role="listbox" aria-label="Тканина" hidden></div>
@@ -119,13 +118,13 @@ try{document.documentElement.setAttribute("data-theme",
 
           <div class="kv-dims">
             <div class="kv-dim">
-              <label for="kvW">Ширина тканини, см</label>
+              <label for="kvW">Ширина тканини, см 👇️️️️️️</label>
               <input type="number" id="kvW" inputmode="numeric" placeholder="Ваш розмір"
                      aria-describedby="kvErrW">
               <p class="fld-err" id="kvErrW" role="alert"></p>
             </div>
             <div class="kv-dim">
-              <label for="kvH">Висота тканини, см</label>
+              <label for="kvH">Висота тканини, см 👇️️️️️️</label>
               <input type="number" id="kvH" inputmode="numeric" placeholder="Ваш розмір"
                      aria-describedby="kvErrH">
               <p class="fld-err" id="kvErrH" role="alert"></p>
@@ -133,7 +132,7 @@ try{document.documentElement.setAttribute("data-theme",
           </div>
 
           <button class="kv-howlink" type="button" id="kvHowBtn" aria-haspopup="dialog"
-                  data-txt="kviz.page.33">Не знаєте, як заміряти?</button>
+                  data-txt="kviz.page.33">Інструкція із заміру «ФОТО»</button>
           <div class="kv-warn" id="kvSizeWarn">
             Для такого розміру потрібен індивідуальний розрахунок. Змініть значення або
             <a data-tel href="tel:+380959048745" style="color:inherit;text-decoration:underline">зателефонуйте нам</a>.
@@ -179,7 +178,7 @@ try{document.documentElement.setAttribute("data-theme",
 
             <div class="ck-rows" id="kvTotalBox">
               <div class="ck-row ck-row--items"><span>Вироби</span><b id="kvTotal">0 ₴</b></div>
-              <div class="ck-row ck-row--ship"><span>Доставка</span><i id="kvShipCost">за тарифом Нової Пошти</i></div>
+              <div class="ck-row ck-row--ship"><span></span><i id="kvShipCost"></i></div>
               <div class="ck-row ck-row--now">
                 <span id="kvNowLab">Ціна</span><b id="kvNow">0 ₴</b>
               </div>
@@ -188,18 +187,17 @@ try{document.documentElement.setAttribute("data-theme",
             </div>
 
             <div class="ck-side-act">
-              <button class="btn btn-p" type="button" id="kvAddWin">+ Додати штору</button>
+              <button class="btn btn-p" type="button" id="kvAddWin">+ Додати ще штору</button>
               <button class="ck-plain" type="button" id="kvRestart">Почати заново</button>
             </div>
 
-            <p class="ck-note">Це попередня вартість. Перед запуском у виробництво ми звіряємо
-              розміри з вами — у більшості випадків сума лишається без змін.</p>
+            <p class="ck-note"></p>
           </div>
         </aside>
 
         <form class="ck-main" id="kvForm" novalidate>
           <h2 class="ck-h" id="kvFormTitle" data-txt="kviz.page.27">Що робимо далі?</h2>
-          <p class="ck-lead">Можна оформити замовлення зараз або просто закріпити за собою знижку й повернутись пізніше.</p>
+          <p class="ck-lead">Оформіть замовлення зараз або просто зафіксуйте за собою знижку , щоб не втратити.</p>
 
           <div class="ck-modes" id="kvModes" role="radiogroup" aria-label="Що робимо">
             <button class="ck-mode" type="button" role="radio" aria-checked="false" data-mode="order">
@@ -274,7 +272,7 @@ try{document.documentElement.setAttribute("data-theme",
               </div>
               <div class="ck-pay-opt">
                 <b data-txt="kviz.pay.2.t">50% + 50%</b>
-                <span data-txt="kviz.pay.2.d">половина наперед, решта — при отриманні</span>
+                <span data-txt="kviz.pay.2.d">50% на рахунок ФОП, а решту — при отриманні</span>
               </div>
             </div>
             <p class="ck-secure">
@@ -283,7 +281,7 @@ try{document.documentElement.setAttribute("data-theme",
                      stroke-linecap="round" stroke-linejoin="round">
                   <rect x="5" y="10.5" width="14" height="9" rx="2"/>
                   <path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg></span>
-              <span data-txt="kviz.pay.note">Спосіб оплати узгодимо з вами телефоном. Карткових даних сайт не приймає — реквізити надішлемо після звірки розмірів.</span>
+              <span data-txt="kviz.pay.note">Рахунок надішлемо Вам на месенджер.</span>
             </p>
           </section>
 
@@ -300,7 +298,7 @@ try{document.documentElement.setAttribute("data-theme",
           </section>
 
           <button class="btn btn-p ck-go" id="kvSubmit" type="submit" data-for="any" hidden>
-            <span id="kvGoLab">Оформити замовлення</span><b id="kvGoSum"></b>
+            <span id="kvGoLab">Замовити зі знижкою</span><b id="kvGoSum"></b>
           </button>
           <p class="kvc-priv" data-for="any" hidden data-txt="kviz.page.28">Натискаючи кнопку, ви погоджуєтесь на обробку контактів для цього
             замовлення. <a href="umovy.html#privacy">Як ми зберігаємо дані</a>.</p>
@@ -351,14 +349,14 @@ try{document.documentElement.setAttribute("data-theme",
 </main>
 
 <script src="assets/config.js?v=317"></script>
-<script src="assets/api.js?v=323"></script>
+<script src="assets/settings-snapshot.js?v=1769660a"></script>
+<script src="assets/api.js?v=324"></script>
 <script src="assets/theme.js?v=317"></script>
 <script src="assets/from.js?v=317"></script>
 <script src="assets/chat.js?v=317"></script>
 <script src="assets/site.js?v=317"></script>
 <script src="assets/kviz.js?v=321"></script>
 <script src="assets/np.js?v=317"></script>
-<script src="assets/loader.js?v=317"></script>
 <script>window.API && API.applySettings();</script>
 
 </body>

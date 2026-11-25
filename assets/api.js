@@ -57,32 +57,48 @@ function показатиСторінку(){
   try{ document.documentElement.classList.remove('fsh-wait'); }catch(e){}
 }
 
-async function applySettings(){
-  let кеш = null;
-  if(typeof CFG !== 'undefined'){
+// Settings the page starts with, applied synchronously when api.js runs (before the
+// page scripts draw prices): this browser's last copy of /api/settings, or the
+// snapshot baked into assets/settings-snapshot.js at release. No splash screen —
+// if /api/settings is slow or down the page keeps working on these values.
+let стартові = null, стартовіРядок = null;
+function застосуватиСтартові(){
+  if(typeof CFG === 'undefined') return;
+  let s = null, raw = null;
+  try{
+    raw = localStorage.getItem(SETTINGS_CACHE);
+    if(raw) s = JSON.parse(raw);
+  }catch(e){ s = null; }
+  if(!s || typeof s !== 'object'){
+    s = (window.FSH_SNAPSHOT && typeof window.FSH_SNAPSHOT === 'object') ? window.FSH_SNAPSHOT : null;
+    raw = null;
+  }
+  if(!s) return;
+  try{
+    deepMerge(CFG, s);
+    applyContent(s);
+    стартові = s; стартовіРядок = raw;
+  }catch(e){}
+  try{ renderFooterSocial(); }catch(e){}
+}
 
-    try{
-      кеш = localStorage.getItem(SETTINGS_CACHE);
-      if(кеш){
-        const s = JSON.parse(кеш);
-        if(s && typeof s === 'object') накластиНалаштування(s);
-      }
-    }catch(e){ кеш = null; }
-    if(кеш) показатиСторінку();
+async function applySettings(){
+  if(typeof CFG !== 'undefined'){
+    let живі = null;
     try{
       const r = await fetch('/api/settings', { headers:{ 'Accept':'application/json' } });
       if(r.ok){
         const s = await r.json();
-        if(s && typeof s === 'object'){
-          const свіже = JSON.stringify(s);
-
-          if(свіже !== кеш){
-            накластиНалаштування(s);
-            try{ localStorage.setItem(SETTINGS_CACHE, свіже); }catch(e){}
-          }
-        }
+        if(s && typeof s === 'object' && !Array.isArray(s)) живі = s;
       }
     }catch(e){   }
+    if(живі){
+      накластиНалаштування(живі);
+      const свіже = JSON.stringify(живі);
+      if(свіже !== стартовіРядок){ try{ localStorage.setItem(SETTINGS_CACHE, свіже); }catch(e){} }
+    } else if(стартові){
+      накластиНалаштування(стартові);
+    }
   }
   показатиСторінку();
 
@@ -429,6 +445,8 @@ function renderFooterSocial(){
 }
 window.renderFooterSocial = renderFooterSocial;
 try{ renderFooterSocial(); }catch(e){}
+
+застосуватиСтартові();
 
 return { sendLead, applySettings, fabricBg, msgLink, msgHref, goMessenger, renderFooterSocial };
 })();

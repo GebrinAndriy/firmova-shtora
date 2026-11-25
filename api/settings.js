@@ -19,7 +19,11 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     const data = await getItem(KEY);
 
-    res.setHeader('Cache-Control', 'no-store, max-age=0');
+    // Visitors get it from Vercel's edge cache (≤20 s stale, refreshed in the
+    // background); the admin asks with ?fresh=1 so it always edits the latest copy.
+    res.setHeader('Cache-Control', req.query && req.query.fresh
+      ? 'no-store, max-age=0'
+      : 'public, max-age=0, s-maxage=20, stale-while-revalidate=600');
     return res.status(200).json(data || {});
   }
 
