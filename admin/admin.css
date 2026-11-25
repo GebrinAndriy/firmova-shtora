@@ -379,7 +379,7 @@ html[data-theme="dark"] .st-call{color:var(--acc)}
 .stat-go.on{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc) inset}
 #leadStats{grid-template-columns:repeat(5,minmax(0,1fr))}
 
-.fns{display:grid;gap:8px}
+.fns{display:grid;gap:8px;margin-top:14px}
 .fn{display:grid;grid-template-columns:minmax(0,15rem) minmax(0,1fr) minmax(0,12rem);gap:6px 16px;
   align-items:center;padding:12px 14px;border-radius:12px;background:var(--sink)}
 .fn-head b{display:block;font-size:14px;font-weight:700}
