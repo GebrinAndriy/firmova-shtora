@@ -2111,6 +2111,10 @@ async function loadFunnel() {
   renderFunnel();
 }
 
+const деньКиєваАдм = iso => new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Europe/Kyiv', year: 'numeric', month: '2-digit', day: '2-digit'
+}).format(new Date(iso));
+
 function сумаВоронки(рядки, дж) {
   const out = { paidSum: 0 };
   for (const [k] of ВОРОНКА) out[k] = 0;
@@ -2152,10 +2156,29 @@ function renderFunnel() {
     '</div>';
   }).join('');
 
-  const сума = з.paid ? '<p class="fn-sum">Оплачено на <b>' + грн(з.paidSum) + ' грн</b>. ' +
-    'Порівняйте з витратами на рекламу за ці ж дні в Meta.</p>' : '';
+  const стартДень = d.since ? деньКиєваАдм(d.since) : '';
+  const оплати = (d.paidList || []).filter(x => !воронкаДж || x.src === воронкаДж);
+  const сумаОпл = оплати.reduce((a, x) => a + (Number(x.total) || 0), 0);
+  const зРекл = оплати.filter(x => x.src === 'ads').reduce((a, x) => a + (Number(x.total) || 0), 0);
+  const оплачено = '<div class="card fn-paid"><h3>Оплачено</h3>' +
+    '<p class="hint">Заявки з калькулятора за цей період, яким менеджер поставив статус «оплачено». ' +
+    'Порівнюйте суму з витратами на рекламу за ті самі дні в Meta.</p>' +
+    (оплати.length
+      ? '<div class="stats">' +
+          '<div class="stat"><b>' + грн(сумаОпл) + '</b><span>оплачено на суму, грн</span></div>' +
+          '<div class="stat"><b>' + грн(оплати.length) + '</b><span>' + скільки(оплати.length, 'оплачене замовлення', 'оплачені замовлення', 'оплачених замовлень') + '</span></div>' +
+          '<div class="stat"><b>' + грн(сумаОпл / оплати.length) + '</b><span>середній чек, грн</span></div>' +
+          (воронкаДж ? '' : '<div class="stat"><b>' + грн(зРекл) + '</b><span>з них від людей з реклами, грн</span></div>') +
+        '</div>' +
+        '<div class="fn-plist">' + оплати.map(x =>
+          '<div class="fn-p"><span class="fn-p-when">' + esc(when(x.at)) + '</span>' +
+          '<b class="fn-p-name">' + esc(x.name || 'Без імені') + '</b>' +
+          '<span class="fn-p-src fn-p-src--' + (x.src === 'ads' ? 'ads' : 'other') + '">' + (x.src === 'ads' ? 'з реклами' : 'інше') + '</span>' +
+          '<b class="fn-p-sum">' + грн(x.total) + ' грн</b></div>').join('') + '</div>'
+      : '<div class="empty">За цей період оплачених замовлень ще немає.</div>') +
+    '</div>';
 
-  const дні = d.days.slice().reverse().filter(r => !d.since || r.day >= d.since);
+  const дні = d.days.slice().reverse().filter(r => !стартДень || r.day >= стартДень);
   const табл = дні.length ? '<div class="card"><h3>По днях</h3>' +
     '<p class="hint">Звіряйте з витратами в Meta по тих самих днях.</p>' +
     '<div class="fn-tbl-wrap"><table class="fn-tbl"><thead><tr><th>День</th>' +
@@ -2178,11 +2201,11 @@ function renderFunnel() {
       '<p class="hint">Скільки людей дійшли до кожного кроку. Рахуємо без cookie й без особистих даних: ' +
       'одна вкладка браузера — одна людина, тож бачимо всіх, а не лише тих, хто прийняв cookie. ' +
       '«З реклами» — ті, хто прийшов за посиланням з Facebook чи Instagram.' +
-      (d.since ? ' Лічильник працює з ' + esc(new Date(d.since + 'T12:00:00').toLocaleDateString('uk-UA', { day: 'numeric', month: 'long' })) + '.' : '') +
+      (d.since ? ' Лічильник працює з ' + esc(when(d.since)) + ', заявки й оплати рахуємо з того ж моменту.' : '') +
       '</p>' +
-      (перший || з.lead ? '<div class="fns">' + рядки + '</div>' + сума
+      (перший || з.lead ? '<div class="fns">' + рядки + '</div>'
         : '<div class="empty">За цей період даних ще немає. Вони зʼявляться, щойно на сайт зайдуть люди.</div>') +
-    '</div>' + табл;
+    '</div>' + оплачено + табл;
 
   $('#fnDays').onclick = e => {
     const b = e.target.closest('[data-days]');

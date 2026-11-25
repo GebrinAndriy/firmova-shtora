@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { guard } from '../lib/auth.js';
-import { hincr, hall, bump, range } from '../lib/store.js';
+import { hincr, hall, bump, range, setOnce, getRaw } from '../lib/store.js';
 import { усіСтатуси } from '../lib/statuses.js';
 import { усіПравки, зПравкою } from '../lib/edits.js';
 
@@ -12,6 +12,10 @@ export const КРОКИ = ['visit', 'calc', 'size', 'price', 'mode'];
 const ДЖЕРЕЛА = ['ads', 'other'];
 const БОТИ = /bot|crawl|spider|slurp|headless|lighthouse|pagespeed|preview|externalhit|python|curl|wget|node-fetch/i;
 const ДНІ = [1, 7, 30, 90];
+// When the counter started: leads made before it have no matching visits, so the
+// report only counts leads from this moment on.
+const СТАРТ = 'funnel:since';
+let стартЗаписано = false;
 
 export const деньКиєва = d => new Intl.DateTimeFormat('en-CA', {
   timeZone: 'Europe/Kyiv', year: 'numeric', month: '2-digit', day: '2-digit'
@@ -43,6 +47,9 @@ export default async function handler(req, res) {
 
     try { await hincr('funnel:' + деньКиєва(new Date()), дж + ':' + крок); }
     catch (e) { return res.status(204).end(); }
+    if (!стартЗаписано) {
+      try { await setOnce(СТАРТ, new Date().toISOString(), 10 * 365 * 86400); стартЗаписано = true; } catch (e) {}
+    }
     return res.status(204).end();
   }
 
@@ -50,14 +57,14 @@ export default async function handler(req, res) {
     if (!(await guard(req, res, 'leads'))) return;
     const n = ДНІ.includes(Number(req.query.days)) ? Number(req.query.days) : 7;
     const дні = останніДні(n);
-    const [лічильники, leads, statuses, правки] = await Promise.all([
+    const [лічильники, leads, statuses, правки, старт] = await Promise.all([
       Promise.all(дні.map(d => hall('funnel:' + d).catch(() => ({})))),
       range('leads', 0, 4999),
       усіСтатуси(),
-      усіПравки()
+      усіПравки(),
+      getRaw(СТАРТ).catch(() => null)
     ]);
-
-    const першийДень = дні.find((d, i) => Object.keys(лічильники[i]).length) || null;
+    const відМоменту = старт && !isNaN(Date.parse(старт)) ? старт : null;
     const days = дні.map((d, i) => {
       const c = лічильники[i], row = { day: d, ads: {}, other: {} };
       for (const s of ДЖЕРЕЛА) for (const k of КРОКИ) row[s][k] = Number(c[s + ':' + k]) || 0;
@@ -66,21 +73,27 @@ export default async function handler(req, res) {
     });
     const заДнем = Object.fromEntries(days.map(r => [r.day, r]));
 
+    const paidList = [];
     for (const сирий of leads) {
       const l = зПравкою(сирий, правки[сирий.id]);
       if (!/квіз/i.test(String(l.source || ''))) continue;
+      if (відМоменту && String(l.at) < відМоменту) continue;
       const r = заДнем[деньКиєва(new Date(l.at))];
-      if (!r || (першийДень && r.day < першийДень)) continue;
+      if (!r) continue;
       const s = джерелоЗаявки(l);
       r[s].lead++;
       if ((statuses[l.id] || l.status) === 'оплачено') {
+        const сума = Number(l.total) > 0 ? Number(l.total) : 0;
         r[s].paid++;
-        r[s].paidSum += Number(l.total) > 0 ? Number(l.total) : 0;
+        r[s].paidSum += сума;
+        paidList.push({ id: l.id, at: l.at, name: String(l.name || '').slice(0, 80), total: сума, src: s,
+                        kind: l.hold ? 'фіксація' : 'замовлення' });
       }
     }
+    paidList.sort((a, b) => String(b.at).localeCompare(String(a.at)));
 
     res.setHeader('Cache-Control', 'no-store');
-    return res.status(200).json({ days, since: першийДень });
+    return res.status(200).json({ days, since: відМоменту, paidList: paidList.slice(0, 100) });
   }
 
   res.setHeader('Allow', 'GET, POST');

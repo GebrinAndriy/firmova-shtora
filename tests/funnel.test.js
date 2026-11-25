@@ -41,7 +41,7 @@ test('steps are counted per source; bots and junk are not', async () => {
   assert.equal(day.ads.calc, 1);
   assert.equal(day.ads.price, 1);
   assert.equal(day.other.visit, 1);
-  assert.equal(r.data.since, сьогодні());
+  assert.equal(деньКиєва(new Date(r.data.since)), сьогодні(), 'the start moment is recorded');
 });
 
 test('leads and payments come from the lead list, split by ad source', async () => {
@@ -55,6 +55,16 @@ test('leads and payments come from the lead list, split by ad source', async () 
   assert.equal(r.data.days.length, 7);
   assert.deepEqual([day.ads.lead, day.ads.paid, day.ads.paidSum], [1, 1, 900]);
   assert.deepEqual([day.other.lead, day.other.paid], [1, 0]);
+  assert.deepEqual(r.data.paidList.map(x => [x.id, x.total, x.src]), [['f-1', 900, 'ads']]);
+});
+
+test('leads made before the counter started are left out', async () => {
+  const since = (await call({ query: { days: '1' }, auth: true })).data.since;
+  const before = new Date(Date.parse(since) - 1000).toISOString();
+  await push('leads', { id: 'f-old', at: before, source: 'Квіз-калькулятор', total: 1910, utm: {} });
+  await hset('lead-status:h', 'f-old', 'оплачено');
+  const r = await call({ query: { days: '90' }, auth: true });
+  assert.ok(!r.data.paidList.some(x => x.id === 'f-old'));
 });
 
 test('the report needs a login; a flood from one address stops counting', async () => {
