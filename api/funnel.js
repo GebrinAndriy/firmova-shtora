@@ -73,22 +73,23 @@ export default async function handler(req, res) {
     });
     const заДнем = Object.fromEntries(days.map(r => [r.day, r]));
 
+    // Funnel steps: calculator leads from the moment the counter started, so they
+    // line up with the counted visits. The «Оплачено» list: every paid lead made in
+    // the period (calculator or chat), whenever the counter started.
     const paidList = [];
     for (const сирий of leads) {
       const l = зПравкою(сирий, правки[сирий.id]);
-      if (!/квіз/i.test(String(l.source || ''))) continue;
-      if (відМоменту && String(l.at) < відМоменту) continue;
       const r = заДнем[деньКиєва(new Date(l.at))];
       if (!r) continue;
       const s = джерелоЗаявки(l);
+      const оплачена = (statuses[l.id] || l.status) === 'оплачено';
+      const сума = Number(l.total) > 0 ? Number(l.total) : 0;
+      if (оплачена) paidList.push({ id: l.id, at: l.at, name: String(l.name || '').slice(0, 80), total: сума, src: s,
+                                    from: /квіз/i.test(String(l.source || '')) ? 'калькулятор' : String(l.source || 'сайт').slice(0, 40) });
+      if (!/квіз/i.test(String(l.source || ''))) continue;
+      if (відМоменту && String(l.at) < відМоменту) continue;
       r[s].lead++;
-      if ((statuses[l.id] || l.status) === 'оплачено') {
-        const сума = Number(l.total) > 0 ? Number(l.total) : 0;
-        r[s].paid++;
-        r[s].paidSum += сума;
-        paidList.push({ id: l.id, at: l.at, name: String(l.name || '').slice(0, 80), total: сума, src: s,
-                        kind: l.hold ? 'фіксація' : 'замовлення' });
-      }
+      if (оплачена) { r[s].paid++; r[s].paidSum += сума; }
     }
     paidList.sort((a, b) => String(b.at).localeCompare(String(a.at)));
 

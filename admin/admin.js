@@ -2161,7 +2161,7 @@ function renderFunnel() {
   const сумаОпл = оплати.reduce((a, x) => a + (Number(x.total) || 0), 0);
   const зРекл = оплати.filter(x => x.src === 'ads').reduce((a, x) => a + (Number(x.total) || 0), 0);
   const оплачено = '<div class="card fn-paid"><h3>Оплачено</h3>' +
-    '<p class="hint">Заявки з калькулятора за цей період, яким менеджер поставив статус «оплачено». ' +
+    '<p class="hint">Усі заявки за цей період (з калькулятора й з чату) зі статусом «оплачено». ' +
     'Порівнюйте суму з витратами на рекламу за ті самі дні в Meta.</p>' +
     (оплати.length
       ? '<div class="stats">' +
@@ -2173,7 +2173,8 @@ function renderFunnel() {
         '<div class="fn-plist">' + оплати.map(x =>
           '<div class="fn-p"><span class="fn-p-when">' + esc(when(x.at)) + '</span>' +
           '<b class="fn-p-name">' + esc(x.name || 'Без імені') + '</b>' +
-          '<span class="fn-p-src fn-p-src--' + (x.src === 'ads' ? 'ads' : 'other') + '">' + (x.src === 'ads' ? 'з реклами' : 'інше') + '</span>' +
+          '<span class="fn-p-src fn-p-src--' + (x.src === 'ads' ? 'ads' : 'other') + '">' + (x.src === 'ads' ? 'з реклами' : 'інше') +
+            (x.from && x.from !== 'калькулятор' ? ' · ' + esc(x.from) : '') + '</span>' +
           '<b class="fn-p-sum">' + грн(x.total) + ' грн</b></div>').join('') + '</div>'
       : '<div class="empty">За цей період оплачених замовлень ще немає.</div>') +
     '</div>';
@@ -2201,7 +2202,7 @@ function renderFunnel() {
       '<p class="hint">Скільки людей дійшли до кожного кроку. Рахуємо без cookie й без особистих даних: ' +
       'одна вкладка браузера — одна людина, тож бачимо всіх, а не лише тих, хто прийняв cookie. ' +
       '«З реклами» — ті, хто прийшов за посиланням з Facebook чи Instagram.' +
-      (d.since ? ' Лічильник працює з ' + esc(when(d.since)) + ', заявки й оплати рахуємо з того ж моменту.' : '') +
+      (d.since ? ' Лічильник працює з ' + esc(when(d.since)) + ': заявки й оплати в цих кроках рахуємо з того ж моменту.' : '') +
       '</p>' +
       (перший || з.lead ? '<div class="fns">' + рядки + '</div>'
         : '<div class="empty">За цей період даних ще немає. Вони зʼявляться, щойно на сайт зайдуть люди.</div>') +

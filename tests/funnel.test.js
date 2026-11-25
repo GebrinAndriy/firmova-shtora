@@ -55,7 +55,7 @@ test('leads and payments come from the lead list, split by ad source', async () 
   assert.equal(r.data.days.length, 7);
   assert.deepEqual([day.ads.lead, day.ads.paid, day.ads.paidSum], [1, 1, 900]);
   assert.deepEqual([day.other.lead, day.other.paid], [1, 0]);
-  assert.deepEqual(r.data.paidList.map(x => [x.id, x.total, x.src]), [['f-1', 900, 'ads']]);
+  assert.deepEqual(r.data.paidList.map(x => [x.id, x.total, x.src, x.from]), [['f-1', 900, 'ads', 'калькулятор']]);
 });
 
 test('leads made before the counter started are left out', async () => {
@@ -64,7 +64,9 @@ test('leads made before the counter started are left out', async () => {
   await push('leads', { id: 'f-old', at: before, source: 'Квіз-калькулятор', total: 1910, utm: {} });
   await hset('lead-status:h', 'f-old', 'оплачено');
   const r = await call({ query: { days: '90' }, auth: true });
-  assert.ok(!r.data.paidList.some(x => x.id === 'f-old'));
+  const day = r.data.days.at(-1);
+  assert.equal(day.other.paid, 0, 'the funnel step leaves it out');
+  assert.ok(r.data.paidList.some(x => x.id === 'f-old' && x.total === 1910), 'the paid list still shows it');
 });
 
 test('the report needs a login; a flood from one address stops counting', async () => {
