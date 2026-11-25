@@ -445,7 +445,7 @@ function show(name, fromHistory){
     b.style.display = '';
   });
   syncNext(name);
-  if(name === 'size') clarityEvent('kviz_measurement_opened');
+  if(name === 'size'){ clarityEvent('kviz_measurement_opened'); if(window.fshStep) fshStep('size'); }
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
@@ -729,6 +729,7 @@ function openCart(зІсторії, безПодії){
 
   if(!зІсторії && !безПодії && window.metaEvent)
     metaEvent('InitiateCheckout', { value: cartSum() || 0, currency: 'UAH' });
+  if(!зІсторії && !безПодії && window.fshStep) fshStep('price');
   $('#kvQuiz').style.display = 'none';
   $('#kvCart').style.display = '';
   renderCart();
@@ -1079,6 +1080,7 @@ let ckMode = '';
 function setMode(m){
   if(sending) return;
   ckMode = m === 'hold' ? 'hold' : 'order';
+  if(window.fshStep) fshStep('mode');
   const pick = $('#kvPick');
   if(pick) pick.hidden = true;
   document.querySelectorAll('#kvModes [data-mode]').forEach(b=>{
@@ -1191,6 +1193,7 @@ $('#kvRestart') && ($('#kvRestart').onclick = ()=>{
 });
 
 function metaStartCalc(){ if(window.metaEvent) metaEvent('StartCalculator'); }
+if(window.fshStep) fshStep('calc');
 if(window.__fbReady) metaStartCalc();
 else document.addEventListener('meta-ready', metaStartCalc, { once:true });
 

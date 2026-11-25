@@ -23,7 +23,7 @@ const моє = ключ => {
 
 let роль = null;
 const ДОСТУП = {
-  admin:   ['leads', 'clients', 'chats', 'builder', 'prices', 'fabrics', 'texts', 'photos', 'contacts', 'system'],
+  admin:   ['leads', 'clients', 'chats', 'funnel', 'builder', 'prices', 'fabrics', 'texts', 'photos', 'contacts', 'system'],
   manager: ['leads', 'clients', 'chats']
 };
 function застосуватиРоль() {
@@ -418,6 +418,7 @@ const TITLES = {
   leads: 'Заявки',
   clients: 'База клієнтів',
   chats: 'Історія чатів',
+  funnel: 'Воронка',
   builder: 'Конструктор сайту',
   prices: 'Ціни й лінійки',
   fabrics: 'Тканини',
@@ -451,11 +452,12 @@ $('#sideNav').onclick = e => {
 
   if (tab === 'chats'  && !$('#chatsBox').dataset.ready)  { $('#chatsBox').dataset.ready = '1';  loadChats(true); }
   if (tab === 'clients' && !$('#clientsBox').dataset.ready) { $('#clientsBox').dataset.ready = '1'; loadClients(); }
+  if (tab === 'funnel') loadFunnel();
   if (tab === 'texts'  && !$('#textsBox').dataset.ready)  { $('#textsBox').dataset.ready = '1';  renderTexts(); }
   if (tab === 'photos' && !$('#photosBox').dataset.ready) { $('#photosBox').dataset.ready = '1'; renderPhotos(); }
   if (tab === 'builder') renderBuilder();
 
-  const hide = (tab === 'leads' || tab === 'chats' || tab === 'clients' || tab === 'photos');
+  const hide = (tab === 'leads' || tab === 'chats' || tab === 'clients' || tab === 'photos' || tab === 'funnel');
   $('#save').hidden = hide || !dirty;
   $('#reset').hidden = hide || !dirty;
 };
@@ -2084,6 +2086,116 @@ function openClient(key) {
           '<i class="chip">' + esc(l.status) + '</i>' +
         '</span>' +
       '</div>').join('') + '</div>';
+}
+
+const ВОРОНКА = [
+  ['visit', 'Зайшли на сайт', 'Відкрили будь-яку сторінку сайту'],
+  ['calc', 'Відкрили калькулятор', ''],
+  ['size', 'Обрали тканину', 'Дійшли до кроку з розмірами'],
+  ['price', 'Побачили ціну', 'Ввели розміри й відкрили кошик з ціною'],
+  ['mode', 'Почали оформлення', 'Обрали «Оформити замовлення» чи «Зафіксувати знижку»'],
+  ['lead', 'Залишили заявку', 'Заявки з калькулятора'],
+  ['paid', 'Оплатили', 'Заявки зі статусом «оплачено»']
+];
+let воронкаДні = 7, воронкаДж = '', воронкаДані = null;
+
+async function loadFunnel() {
+  const box = $('#funnelBox');
+  if (!воронкаДані) box.innerHTML = '<div class="empty">Завантажуємо…</div>';
+  try {
+    воронкаДані = await api('/api/funnel?days=' + воронкаДні);
+  } catch (err) {
+    box.innerHTML = '<div class="empty">Не вдалося завантажити воронку: ' + esc(err.message) + '</div>';
+    return;
+  }
+  renderFunnel();
+}
+
+function сумаВоронки(рядки, дж) {
+  const out = { paidSum: 0 };
+  for (const [k] of ВОРОНКА) out[k] = 0;
+  for (const r of рядки) for (const s of (дж ? [дж] : ['ads', 'other'])) {
+    for (const [k] of ВОРОНКА) out[k] += r[s][k] || 0;
+    out.paidSum += r[s].paidSum || 0;
+  }
+  return out;
+}
+
+function renderFunnel() {
+  const box = $('#funnelBox');
+  const d = воронкаДані || { days: [] };
+  const з = сумаВоронки(d.days, воронкаДж);
+  const перший = з.visit || 0;
+
+  let гірший = null;
+  ВОРОНКА.forEach(([k], i) => {
+    if (!i) return;
+    const було = з[ВОРОНКА[i - 1][0]];
+    if (було < 10) return;
+    const пішли = 1 - з[k] / було;
+    if (!гірший || пішли > гірший.пішли) гірший = { k, пішли };
+  });
+
+  const рядки = ВОРОНКА.map(([k, назва, пояснення], i) => {
+    const n = з[k];
+    const було = i ? з[ВОРОНКА[i - 1][0]] : 0;
+    const ширина = перший ? Math.max(n ? 1.5 : 0, Math.min(100, n / перший * 100)) : 0;
+    const крок = i && було ? Math.round(n / було * 100) + '% від попереднього' : '';
+    const всіх = i && перший ? (n / перший * 100).toFixed(n / перший < 0.1 ? 1 : 0) + '% від тих, хто зайшов' : '';
+    return '<div class="fn' + (гірший && гірший.k === k ? ' fn--bad' : '') + '">' +
+      '<div class="fn-head"><b>' + esc(назва) + '</b>' +
+        (пояснення ? '<small>' + esc(пояснення) + '</small>' : '') + '</div>' +
+      '<div class="fn-bar"><i style="width:' + ширина.toFixed(1) + '%"></i></div>' +
+      '<div class="fn-n"><b>' + грн(n) + '</b><small>' + esc([крок, всіх].filter(Boolean).join(' · ')) + '</small></div>' +
+      (гірший && гірший.k === k ? '<p class="fn-note">Тут губиться найбільше людей: ' +
+        Math.round(гірший.пішли * 100) + '% не йдуть далі. З цього кроку варто почати.</p>' : '') +
+    '</div>';
+  }).join('');
+
+  const сума = з.paid ? '<p class="fn-sum">Оплачено на <b>' + грн(з.paidSum) + ' грн</b>. ' +
+    'Порівняйте з витратами на рекламу за ці ж дні в Meta.</p>' : '';
+
+  const дні = d.days.slice().reverse().filter(r => !d.since || r.day >= d.since);
+  const табл = дні.length ? '<div class="card"><h3>По днях</h3>' +
+    '<p class="hint">Звіряйте з витратами в Meta по тих самих днях.</p>' +
+    '<div class="fn-tbl-wrap"><table class="fn-tbl"><thead><tr><th>День</th>' +
+      ВОРОНКА.map(([, назва]) => '<th>' + esc(назва) + '</th>').join('') + '</tr></thead><tbody>' +
+      дні.map(r => {
+        const x = сумаВоронки([r], воронкаДж);
+        return '<tr><td>' + esc(new Date(r.day + 'T12:00:00').toLocaleDateString('uk-UA', { day: 'numeric', month: 'short' })) + '</td>' +
+          ВОРОНКА.map(([k]) => '<td>' + грн(x[k]) + '</td>').join('') + '</tr>';
+      }).join('') +
+    '</tbody></table></div></div>' : '';
+
+  box.innerHTML =
+    '<div class="toolbar">' +
+      '<div class="seg" id="fnDays">' + [[1, 'Сьогодні'], [7, '7 днів'], [30, '30 днів'], [90, '90 днів']].map(([n, t]) =>
+        '<button type="button" data-days="' + n + '"' + (n === воронкаДні ? ' class="on"' : '') + '>' + t + '</button>').join('') + '</div>' +
+      '<div class="seg" id="fnSrc">' + [['', 'Усі'], ['ads', 'З реклами'], ['other', 'Інші']].map(([v, t]) =>
+        '<button type="button" data-src="' + v + '"' + (v === воронкаДж ? ' class="on"' : '') + '>' + t + '</button>').join('') + '</div>' +
+    '</div>' +
+    '<div class="card"><h3>Шлях людей на сайті</h3>' +
+      '<p class="hint">Скільки людей дійшли до кожного кроку. Рахуємо без cookie й без особистих даних: ' +
+      'одна вкладка браузера — одна людина, тож бачимо всіх, а не лише тих, хто прийняв cookie. ' +
+      '«З реклами» — ті, хто прийшов за посиланням з Facebook чи Instagram.' +
+      (d.since ? ' Лічильник працює з ' + esc(new Date(d.since + 'T12:00:00').toLocaleDateString('uk-UA', { day: 'numeric', month: 'long' })) + '.' : '') +
+      '</p>' +
+      (перший || з.lead ? '<div class="fns">' + рядки + '</div>' + сума
+        : '<div class="empty">За цей період даних ще немає. Вони зʼявляться, щойно на сайт зайдуть люди.</div>') +
+    '</div>' + табл;
+
+  $('#fnDays').onclick = e => {
+    const b = e.target.closest('[data-days]');
+    if (!b) return;
+    воронкаДні = Number(b.dataset.days);
+    loadFunnel();
+  };
+  $('#fnSrc').onclick = e => {
+    const b = e.target.closest('[data-src]');
+    if (!b) return;
+    воронкаДж = b.dataset.src;
+    renderFunnel();
+  };
 }
 
 let чати = [], чатВід = 0, чатВсього = 0;

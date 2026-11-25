@@ -378,6 +378,37 @@ html[data-theme="dark"] .st-call{color:var(--acc)}
 .stat-go:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .stat-go.on{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc) inset}
 #leadStats{grid-template-columns:repeat(5,minmax(0,1fr))}
+
+.fns{display:grid;gap:8px}
+.fn{display:grid;grid-template-columns:minmax(0,15rem) minmax(0,1fr) minmax(0,12rem);gap:6px 16px;
+  align-items:center;padding:12px 14px;border-radius:12px;background:var(--sink)}
+.fn-head b{display:block;font-size:14px;font-weight:700}
+.fn-head small,.fn-n small{display:block;font-size:11.5px;color:var(--muted);line-height:1.4;margin-top:2px}
+.fn-bar{height:10px;border-radius:999px;background:var(--line);overflow:hidden}
+.fn-bar i{display:block;height:100%;border-radius:999px;background:var(--acc)}
+.fn-n{text-align:right}
+.fn-n b{font-family:var(--font-head);font-size:22px;font-weight:800;letter-spacing:-.03em;
+  font-variant-numeric:tabular-nums}
+.fn--bad{background:var(--warn-bg);box-shadow:inset 0 0 0 1px var(--warn-dot)}
+.fn--bad .fn-bar i{background:var(--warn-dot)}
+.fn-note{grid-column:1/-1;font-size:12.5px;color:var(--warn);font-weight:600;margin:2px 0 0}
+.fn-sum{margin:14px 0 0;font-size:13.5px;color:var(--muted)}
+.fn-sum b{color:var(--ink)}
+.fn-tbl-wrap{overflow-x:auto}
+.fn-tbl{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+.fn-tbl th{font-size:11px;font-weight:600;color:var(--muted);text-align:right;padding:6px 8px;
+  border-bottom:1px solid var(--line);vertical-align:bottom;min-width:76px}
+.fn-tbl td{text-align:right;padding:7px 8px;border-bottom:1px solid var(--line-s)}
+.fn-tbl th:first-child,.fn-tbl td:first-child{text-align:left;white-space:nowrap;min-width:0}
+@media (max-width:720px){
+  .fn{grid-template-columns:minmax(0,1fr) auto}
+  .fn-head{grid-column:1;grid-row:1}
+  .fn-n{display:contents}
+  .fn-n b{grid-column:2;grid-row:1;align-self:start}
+  .fn-bar{grid-column:1/-1;grid-row:2}
+  .fn-n small{grid-column:1/-1;grid-row:3;margin-top:0;text-align:left}
+  .fn-note{grid-row:4}
+}
 #leadStats:empty{display:none}
 @media (max-width:1100px){
   #leadStats{grid-template-columns:repeat(2,minmax(0,1fr))}

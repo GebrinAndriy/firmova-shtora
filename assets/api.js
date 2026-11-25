@@ -21,6 +21,35 @@
   };
 })();
 
+// Anonymous funnel counter for the admin's «Воронка» tab: once per browser tab and
+// step it tells the server "one more visitor got here". No cookies, no ids, no
+// personal data — the only thing kept is a daily count per step and source.
+(function(){
+  const КРОКИ = ['visit', 'calc', 'size', 'price', 'mode'];
+  const ДЕ = 'fsh_steps';
+  const зРеклами = () => {
+    const u = window.fshUtm ? window.fshUtm() : {};
+    return !!(u.fbclid || /^(fb|facebook|ig|instagram|meta)/i.test(u.utm_source || ''));
+  };
+  let вКадрі = false;
+  try{ вКадрі = window.top !== window; }catch(e){ вКадрі = true; }
+  window.fshStep = function(step){
+    if(вКадрі || КРОКИ.indexOf(step) === -1) return;
+    let були = [];
+    try{ були = JSON.parse(sessionStorage.getItem(ДЕ) || '[]'); }catch(e){}
+    if(!Array.isArray(були)) були = [];
+    if(були.indexOf(step) !== -1) return;
+    були.push(step);
+    try{ sessionStorage.setItem(ДЕ, JSON.stringify(були)); }catch(e){}
+    const body = JSON.stringify({ s: step, src: зРеклами() ? 'ads' : 'other' });
+    try{
+      if(navigator.sendBeacon && navigator.sendBeacon('/api/funnel', new Blob([body], { type: 'application/json' }))) return;
+    }catch(e){}
+    try{ fetch('/api/funnel', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, keepalive: true }).catch(()=>{}); }catch(e){}
+  };
+  window.fshStep('visit');
+})();
+
 window.API = (function(){
 'use strict';
 
