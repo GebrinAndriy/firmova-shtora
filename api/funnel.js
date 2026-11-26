@@ -21,8 +21,13 @@ export const деньКиєва = d => new Intl.DateTimeFormat('en-CA', {
   timeZone: 'Europe/Kyiv', year: 'numeric', month: '2-digit', day: '2-digit'
 }).format(d);
 
-function останніДні(n, now = new Date()) {
-  const [y, m, d] = деньКиєва(now).split('-').map(Number);
+// n days ending on `кінець` (YYYY-MM-DD, Kyiv); a missing, broken or future date means today.
+export function дніДо(n, кінець, now = new Date()) {
+  const сьогодні = деньКиєва(now);
+  const ок = /^\d{4}-\d{2}-\d{2}$/.test(String(кінець || '')) &&
+    new Date(кінець + 'T00:00:00Z').toISOString().slice(0, 10) === кінець;
+  const до = ок && кінець < сьогодні ? кінець : сьогодні;
+  const [y, m, d] = до.split('-').map(Number);
   const out = [];
   for (let i = n - 1; i >= 0; i--) out.push(new Date(Date.UTC(y, m - 1, d - i)).toISOString().slice(0, 10));
   return out;
@@ -61,7 +66,8 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     if (!(await guard(req, res, 'leads'))) return;
     const n = ДНІ.includes(Number(req.query.days)) ? Number(req.query.days) : 7;
-    const дні = останніДні(n);
+    let дні;
+    try { дні = дніДо(n, req.query.end); } catch (e) { дні = дніДо(n); }
     const [лічильники, leads, statuses, правки, старт] = await Promise.all([
       Promise.all(дні.map(d => hall('funnel:' + d).catch(() => ({})))),
       range('leads', 0, 4999),

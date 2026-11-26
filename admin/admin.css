@@ -394,6 +394,25 @@ html[data-theme="dark"] .st-call{color:var(--acc)}
 .fn-note{grid-column:1/-1;font-size:12.5px;color:var(--warn);font-weight:600;margin:2px 0 0}
 .fn-paid .stats{margin-bottom:14px}
 .fn-live{margin-left:auto;display:flex;align-items:center;gap:10px}
+.fn-when{display:flex;align-items:center;gap:6px}
+.fn-step{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--card);
+  color:var(--ink);display:grid;place-items:center;cursor:pointer;flex:none;transition:border-color .15s,opacity .15s}
+.fn-step:hover:not(:disabled){border-color:var(--acc)}
+.fn-step:disabled{opacity:.35;cursor:default}
+.fn-step svg,.fn-date svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round;flex:none}
+.fn-step:focus-visible,.fn-today:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.fn-date{position:relative;display:flex;align-items:center;gap:8px;min-height:36px;padding:0 14px;
+  border-radius:999px;border:1px solid var(--line);background:var(--card);cursor:pointer;
+  font-size:13.5px;font-weight:600;white-space:nowrap;transition:border-color .15s}
+.fn-date:hover{border-color:var(--acc)}
+.fn-date svg{color:var(--acc)}
+.fn-date:focus-within{outline:2px solid var(--acc);outline-offset:2px}
+.fn-date input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;
+  border:0;padding:0;margin:0;font-size:16px}
+.fn-date input::-webkit-calendar-picker-indicator{position:absolute;inset:0;width:100%;height:100%;cursor:pointer}
+.fn-today{border:0;background:none;color:var(--acc);font:inherit;font-size:13px;font-weight:600;
+  cursor:pointer;padding:6px 4px;text-decoration:underline;text-underline-offset:3px}
 .fn-upd{font-size:12px;color:var(--faint);font-variant-numeric:tabular-nums;white-space:nowrap}
 .fn-refresh{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--card);
   color:var(--muted);display:grid;place-items:center;cursor:pointer;flex:none;

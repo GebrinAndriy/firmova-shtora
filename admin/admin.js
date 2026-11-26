@@ -2100,9 +2100,41 @@ const ВОРОНКА = [
   ['lead', 'Залишили заявку', 'Заявки з калькулятора'],
   ['paid', 'Оплатили', 'Заявки зі статусом «оплачено»']
 ];
-let воронкаДні = 7, воронкаДж = '', воронкаДані = null;
+let воронкаДні = 1, воронкаДж = '', воронкаДані = null;
+// The last day of the period shown, YYYY-MM-DD in Kyiv time; '' = today.
+let воронкаКінець = '';
 
-let воронкаЙде = false, воронкаКоли = null, воронкаТаймер = null;
+const сьогодніКиїв = () => деньКиєваАдм(new Date());
+const зсунутиДень = (день, на) => {
+  const d = new Date(день + 'T12:00:00Z');
+  d.setUTCDate(d.getUTCDate() + на);
+  return d.toISOString().slice(0, 10);
+};
+const кінецьВоронки = () => воронкаКінець || сьогодніКиїв();
+
+function підписПеріоду() {
+  const до = кінецьВоронки(), від = зсунутиДень(до, 1 - воронкаДні);
+  const рік = new Date().getFullYear();
+  const д = (s, зРоком) => new Date(s + 'T12:00:00Z').toLocaleDateString('uk-UA',
+    Object.assign({ day: 'numeric', month: 'long', timeZone: 'UTC' }, зРоком ? { year: 'numeric' } : {}));
+  const іншийРік = s => Number(s.slice(0, 4)) !== рік;
+  if (воронкаДні === 1) {
+    if (до === сьогодніКиїв()) return 'Сьогодні, ' + д(до);
+    if (до === зсунутиДень(сьогодніКиїв(), -1)) return 'Вчора, ' + д(до);
+    return д(до, іншийРік(до));
+  }
+  const вМісяці = від.slice(0, 7) === до.slice(0, 7);
+  return (вМісяці ? Number(від.slice(8)) : д(від, іншийРік(від) && від.slice(0, 4) !== до.slice(0, 4))) +
+    ' – ' + д(до, іншийРік(до));
+}
+
+function обратиКінець(день) {
+  const сьогодні = сьогодніКиїв();
+  воронкаКінець = !день || день >= сьогодні ? '' : день;
+  loadFunnel();
+}
+
+let воронкаЙде = false, воронкаЩе = false, воронкаКоли = null, воронкаТаймер = null;
 const ВОРОНКА_МС = 10000;
 
 function воронкаВідкрита() {
@@ -2118,21 +2150,25 @@ function крутити(on) {
 // тихо = the 10-second auto refresh: on an error it keeps what is on screen.
 async function loadFunnel(тихо) {
   const box = $('#funnelBox');
-  if (воронкаЙде) return;
+  // A click while a request is in flight is not dropped: it runs right after.
+  if (воронкаЙде) { if (!тихо) воронкаЩе = true; return; }
   воронкаЙде = true; крутити(true);
   if (!воронкаДані) box.innerHTML = '<div class="empty">Завантажуємо…</div>';
-  const дні = воронкаДні;
+  const ключ = воронкаДні + '|' + воронкаКінець;
+  let помилка = null;
   try {
-    const d = await api('/api/funnel?days=' + дні);
-    if (дні === воронкаДні) { воронкаДані = d; воронкаКоли = new Date(); }
-  } catch (err) {
-    воронкаЙде = false; крутити(false);
-    if (!тихо || !воронкаДані) box.innerHTML = '<div class="empty">Не вдалося завантажити воронку: ' + esc(err.message) + '</div>';
+    const d = await api('/api/funnel?days=' + воронкаДні + (воронкаКінець ? '&end=' + воронкаКінець : ''));
+    if (ключ === воронкаДні + '|' + воронкаКінець) { воронкаДані = d; воронкаКоли = new Date(); }
+    else воронкаЩе = true;
+  } catch (err) { помилка = err; }
+  воронкаЙде = false; крутити(false);
+  if (!воронкаТаймер) воронкаТаймер = setInterval(() => { if (воронкаВідкрита()) loadFunnel(true); }, ВОРОНКА_МС);
+  if (воронкаЩе) { воронкаЩе = false; return loadFunnel(false); }
+  if (помилка) {
+    if (!тихо || !воронкаДані) box.innerHTML = '<div class="empty">Не вдалося завантажити воронку: ' + esc(помилка.message) + '</div>';
     return;
   }
-  воронкаЙде = false;
   renderFunnel();
-  if (!воронкаТаймер) воронкаТаймер = setInterval(() => { if (воронкаВідкрита()) loadFunnel(true); }, ВОРОНКА_МС);
 }
 
 const деньКиєваАдм = iso => new Intl.DateTimeFormat('en-CA', {
@@ -2218,8 +2254,22 @@ function renderFunnel() {
   const вбік = (box.querySelector('.fn-tbl-wrap') || {}).scrollLeft || 0;
   box.innerHTML =
     '<div class="toolbar">' +
-      '<div class="seg" id="fnDays">' + [[1, 'Сьогодні'], [7, '7 днів'], [30, '30 днів'], [90, '90 днів']].map(([n, t]) =>
+      '<div class="seg" id="fnDays">' + [[1, 'День'], [7, '7 днів'], [30, '30 днів'], [90, '90 днів']].map(([n, t]) =>
         '<button type="button" data-days="' + n + '"' + (n === воронкаДні ? ' class="on"' : '') + '>' + t + '</button>').join('') + '</div>' +
+      '<div class="fn-when">' +
+        '<button type="button" class="fn-step" id="fnPrev" title="Раніше" aria-label="Раніше">' +
+          '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></button>' +
+        '<label class="fn-date" title="Обрати дату">' +
+          '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/>' +
+            '<path d="M3.5 10h17M8 3v4M16 3v4"/></svg>' +
+          '<span>' + esc(підписПеріоду()) + '</span>' +
+          '<input type="date" id="fnDate" aria-label="Дата" max="' + сьогодніКиїв() + '" value="' + кінецьВоронки() + '">' +
+        '</label>' +
+        '<button type="button" class="fn-step" id="fnNext" title="Пізніше" aria-label="Пізніше"' +
+          (воронкаКінець ? '' : ' disabled') + '>' +
+          '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>' +
+        (воронкаКінець ? '<button type="button" class="fn-today" id="fnToday">Сьогодні</button>' : '') +
+      '</div>' +
       '<div class="seg" id="fnSrc">' + [['', 'Усі'], ['ads', 'З Facebook / Instagram'], ['other', 'Інші']].map(([v, t]) =>
         '<button type="button" data-src="' + v + '"' + (v === воронкаДж ? ' class="on"' : '') + '>' + t + '</button>').join('') + '</div>' +
       '<div class="fn-live">' +
@@ -2247,6 +2297,13 @@ function renderFunnel() {
     воронкаДж = b.dataset.src;
     renderFunnel();
   };
+  $('#fnPrev').onclick = () => обратиКінець(зсунутиДень(кінецьВоронки(), -воронкаДні));
+  $('#fnNext').onclick = () => обратиКінець(зсунутиДень(кінецьВоронки(), воронкаДні));
+  const сьогодніБ = $('#fnToday');
+  if (сьогодніБ) сьогодніБ.onclick = () => обратиКінець('');
+  const дата = $('#fnDate');
+  дата.onclick = () => { try { дата.showPicker(); } catch (e) {} };
+  дата.onchange = () => { if (дата.value) обратиКінець(дата.value); };
   $('#fnRefresh').onclick = () => loadFunnel(false);
   крутити(воронкаЙде);
   const табл2 = box.querySelector('.fn-tbl-wrap');

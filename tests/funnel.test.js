@@ -91,3 +91,12 @@ test('a lead opened inside Instagram or Facebook counts as Facebook / Instagram'
   const r = await call({ query: { days: '1' }, auth: true });
   assert.equal(r.data.paidList.find(x => x.id === 'f-ig').src, 'ads');
 });
+
+test('any past day can be picked; a future or broken date falls back to today', async () => {
+  const r = await call({ query: { days: '7', end: '2026-10-05' }, auth: true });
+  assert.deepEqual(r.data.days.map(d => d.day), ['2026-09-29', '2026-09-30', '2026-10-01', '2026-10-02', '2026-10-03', '2026-10-04', '2026-10-05']);
+  for (const end of ['2999-01-01', '2026-02-30', 'junk']) {
+    const x = await call({ query: { days: '1', end }, auth: true });
+    assert.deepEqual(x.data.days.map(d => d.day), [сьогодні()]);
+  }
+});
