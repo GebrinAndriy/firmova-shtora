@@ -100,3 +100,19 @@ test('any past day can be picked; a future or broken date falls back to today', 
     assert.deepEqual(x.data.days.map(d => d.day), [сьогодні()]);
   }
 });
+
+test('funnel steps count people: a second lead from one phone and staff leads are not +1', async () => {
+  const before = (await call({ query: { days: '1' }, auth: true })).data.days.at(-1).other;
+  const at = new Date().toISOString();
+  await push('leads', { id: 'p-1', at, source: 'Квіз-калькулятор', phone: '0671112233', total: 400, utm: {} });
+  await push('leads', { id: 'p-2', at, source: 'Квіз-калькулятор', phone: '+38 067 111 22 33', total: 500, utm: {}, hold: 7 });
+  await push('leads', { id: 'p-3', at, source: 'Квіз-калькулятор', phone: '0509998877', total: 300, utm: {}, staff: 'manager' });
+  await hset('lead-status:h', 'p-1', 'оплачено');
+  await hset('lead-status:h', 'p-2', 'оплачено');
+  const r = await call({ query: { days: '1' }, auth: true });
+  const after = r.data.days.at(-1).other;
+  assert.equal(after.lead - before.lead, 1);
+  assert.equal(after.paid - before.paid, 1);
+  assert.equal(after.paidSum - before.paidSum, 900, 'money still counts both orders');
+  assert.ok(r.data.paidList.some(x => x.id === 'p-2'), 'the paid list still shows every order');
+});

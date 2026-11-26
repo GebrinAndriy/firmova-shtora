@@ -1,5 +1,6 @@
 import { push, pushWithReceipt, isPersistent, bump, smembers, srem } from '../lib/store.js';
 import { clientIp } from '../lib/ip.js';
+import { sessionRole } from '../lib/auth.js';
 import { capi, metaReady } from '../lib/meta.js';
 
 const LIST = 'leads';
@@ -252,6 +253,9 @@ export default async function handler(req, res) {
     note:   clean(body.note, 1000),
     status: 'нова'
   };
+  // Placed from a device logged into the admin (an order taken by phone, a test):
+  // a real lead, but not a visitor, so the funnel leaves it out.
+  try { const хто = await sessionRole(req); if (хто) lead.staff = хто; } catch (e) {}
 
   if (JSON.stringify(lead).length > МАКС_ТІЛО) return res.status(413).json({ error: 'Заявка завелика' });
 

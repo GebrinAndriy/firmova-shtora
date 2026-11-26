@@ -88,6 +88,10 @@ export default async function handler(req, res) {
     // line up with the counted visits. The «Оплачено» list: every paid lead made in
     // the period (calculator or chat), whenever the counter started.
     const paidList = [];
+    // Funnel steps count people, like the visit steps: one phone once a day, so a
+    // second lead from the same person (a resend, hold then order) is not +1.
+    const люди = {};
+    const людина = l => String(l.phone || '').replace(/\D/g, '').slice(-9) || l.id;
     for (const сирий of leads) {
       const l = зПравкою(сирий, правки[сирий.id]);
       const r = заДнем[деньКиєва(new Date(l.at))];
@@ -97,10 +101,15 @@ export default async function handler(req, res) {
       const сума = Number(l.total) > 0 ? Number(l.total) : 0;
       if (оплачена) paidList.push({ id: l.id, at: l.at, name: String(l.name || '').slice(0, 80), total: сума, src: s,
                                     from: /квіз/i.test(String(l.source || '')) ? 'калькулятор' : String(l.source || 'сайт').slice(0, 40) });
-      if (!/квіз/i.test(String(l.source || ''))) continue;
+      if (!/квіз/i.test(String(l.source || '')) || l.staff) continue;
       if (відМоменту && String(l.at) < відМоменту) continue;
-      r[s].lead++;
-      if (оплачена) { r[s].paid++; r[s].paidSum += сума; }
+      const хто = r.day + '|' + s + '|' + людина(l);
+      const було = люди[хто] || (люди[хто] = { lead: false, paid: false });
+      if (!було.lead) { було.lead = true; r[s].lead++; }
+      if (оплачена) {
+        r[s].paidSum += сума;
+        if (!було.paid) { було.paid = true; r[s].paid++; }
+      }
     }
     paidList.sort((a, b) => String(b.at).localeCompare(String(a.at)));
 
