@@ -238,3 +238,18 @@ test('nothing is sent until the visitor picks order or discount hold', async () 
   await page.submit();
   assert.equal(page.sent.length, 0);
 });
+
+test('a discount hold reaches Meta as PriceHold and as Lead with one event ID; an order as Lead only', async () => {
+  for (const [mode, names] of [['hold', ['PriceHold', 'Lead']], ['order', ['Lead']]]) {
+    const page = checkout(mode);
+    const meta = [];
+    page.window.__fbReady = true;
+    page.window.metaEvent = page.context.metaEvent = (name, params, id) => meta.push({ name, params, id });
+    page.context.response = { ok: true, stored: true, id: 'saved-id' };
+    await page.submit();
+    assert.deepEqual(meta.map(m => m.name), names, mode);
+    assert.equal(new Set(meta.map(m => m.id)).size, 1, 'one event ID, so Meta merges browser and server copies');
+    assert.equal(meta.find(m => m.name === 'Lead').params.lead_type, mode);
+    assert.equal(page.sent[0].payload.meta.event_name, mode === 'hold' ? 'PriceHold' : 'Lead');
+  }
+});

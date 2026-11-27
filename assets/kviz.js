@@ -1317,7 +1317,10 @@ $('#kvForm').onsubmit = e => {
                              lead_type: hold ? 'hold' : 'order' });
       clarityEvent(hold ? 'kviz_discount_hold_saved' : 'kviz_order_saved');
       if(eventId && window.metaEvent)
-        metaEvent(eventName, { value, currency: 'UAH' }, eventId);
+        metaEvent(eventName, Object.assign({ value, currency: 'UAH' }, hold ? {} : { lead_type: 'order' }), eventId);
+      // A discount hold counts as a lead for ad optimisation too (see api/lead.js).
+      if(eventId && window.metaEvent && hold)
+        metaEvent('Lead', { value, currency: 'UAH', lead_type: 'hold' }, eventId);
       afterSend(hold);
     })
     .catch(err=>{

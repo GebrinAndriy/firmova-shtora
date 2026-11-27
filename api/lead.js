@@ -277,15 +277,21 @@ export default async function handler(req, res) {
   const tg = переповнено ? { sent: false, reason: 'добова стеля' } : await toTelegram(lead);
 
   if (lead.meta && lead.meta.event_id && metaReady()) {
-    const evName = lead.meta.event_name === 'PriceHold' ? 'PriceHold' : 'Lead';
-    await Promise.race([capi(evName, {
+    const тримає = lead.meta.event_name === 'PriceHold';
+    const спільне = {
       eventId: lead.meta.event_id,
       value: lead.total || undefined,
       phone: lead.phone,
       fbp: lead.meta.fbp, fbc: lead.meta.fbc,
       ip, ua: req.headers['user-agent'] || '',
       sourceUrl: req.headers['referer'] || ''
-    }).catch(() => {}), new Promise(r => setTimeout(r, 2500))]);
+    };
+    // A discount hold is a lead too: ads optimise on Lead, so it goes out as Lead
+    // (lead_type: hold) as well as PriceHold. Same event_id as the browser's Lead,
+    // so Meta merges the two (it dedupes on event name + event_id).
+    const події = [capi('Lead', { ...спільне, custom: { lead_type: тримає ? 'hold' : 'order' } })];
+    if (тримає) події.push(capi('PriceHold', спільне));
+    await Promise.race([Promise.all(події.map(p => p.catch(() => {}))), new Promise(r => setTimeout(r, 2500))]);
   }
 
   return res.status(200).json({
