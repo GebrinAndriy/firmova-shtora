@@ -2189,7 +2189,8 @@ function шляхиВізитів(рядки, дж, всього) {
     for (const [k, v] of Object.entries((r[s] && r[s].dev) || {})) dev[k] = (dev[k] || 0) + v;
   }
   const відомо = Object.values(via).reduce((a, x) => a + x, 0);
-  if (!відомо) return '';
+  if (!відомо) return всього ? '<div class="fn-via"><span class="fn-via-dev">Звідки прийшли люди й з якого пристрою, ' +
+    'видно для відвідувань з 27 листопада, приблизно з 12:00. Перші дані зʼявляться, щойно хтось зайде на сайт.</span></div>' : '';
   const чіп = (назва, n) => '<span class="fn-via-i"><b>' + грн(n) + '</b> ' + esc(назва) + '</span>';
   const пристрої = dev.m + dev.d;
   return '<div class="fn-via">' +
