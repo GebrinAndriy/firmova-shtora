@@ -2175,6 +2175,31 @@ const деньКиєваАдм = iso => new Intl.DateTimeFormat('en-CA', {
   timeZone: 'Europe/Kyiv', year: 'numeric', month: '2-digit', day: '2-digit'
 }).format(new Date(iso));
 
+const ШЛЯХИ_НАЗВИ = [
+  ['ad', 'Рекламне посилання'], ['facebook', 'Facebook без мітки'], ['instagram', 'Instagram без мітки'],
+  ['google', 'Google'], ['site', 'Інші сайти'], ['direct', 'Без джерела: набрали адресу, закладка, Viber чи Telegram']
+];
+
+// «Зайшли на сайт» split by how the visit arrived and by device. Visits counted
+// before this breakdown existed have none, so they show as «ще без розбивки».
+function шляхиВізитів(рядки, дж, всього) {
+  const via = {}, dev = { m: 0, d: 0 };
+  for (const r of рядки) for (const s of (дж ? [дж] : ['ads', 'other'])) {
+    for (const [k, v] of Object.entries((r[s] && r[s].via) || {})) via[k] = (via[k] || 0) + v;
+    for (const [k, v] of Object.entries((r[s] && r[s].dev) || {})) dev[k] = (dev[k] || 0) + v;
+  }
+  const відомо = Object.values(via).reduce((a, x) => a + x, 0);
+  if (!відомо) return '';
+  const чіп = (назва, n) => '<span class="fn-via-i"><b>' + грн(n) + '</b> ' + esc(назва) + '</span>';
+  const пристрої = dev.m + dev.d;
+  return '<div class="fn-via">' +
+    ШЛЯХИ_НАЗВИ.filter(([k]) => via[k]).sort((a, b) => via[b[0]] - via[a[0]]).map(([k, n]) => чіп(n, via[k])).join('') +
+    (всього > відомо ? чіп('ще без розбивки (до 27 листопада)', всього - відомо) : '') +
+    (пристрої ? '<span class="fn-via-dev">з телефона ' + Math.round(dev.m / пристрої * 100) + '% · з компʼютера ' +
+      Math.round(dev.d / пристрої * 100) + '%</span>' : '') +
+  '</div>';
+}
+
 function сумаВоронки(рядки, дж) {
   const out = { paidSum: 0 };
   for (const [k] of ВОРОНКА) out[k] = 0;
@@ -2200,6 +2225,7 @@ function renderFunnel() {
     if (!гірший || пішли > гірший.пішли) гірший = { k, пішли };
   });
 
+  const розбивка = шляхиВізитів(d.days, воронкаДж, з.visit);
   const рядки = ВОРОНКА.map(([k, назва, пояснення], i) => {
     const n = з[k];
     const було = i ? з[ВОРОНКА[i - 1][0]] : 0;
@@ -2211,6 +2237,7 @@ function renderFunnel() {
         (пояснення ? '<small>' + esc(пояснення) + '</small>' : '') + '</div>' +
       '<div class="fn-bar"><i style="width:' + ширина.toFixed(1) + '%"></i></div>' +
       '<div class="fn-n"><b>' + грн(n) + '</b><small>' + esc([крок, всіх].filter(Boolean).join(' · ')) + '</small></div>' +
+      (k === 'visit' ? розбивка : '') +
       (гірший && гірший.k === k ? '<p class="fn-note">Тут губиться найбільше людей: ' +
         Math.round(гірший.пішли * 100) + '% не йдуть далі. З цього кроку варто почати.</p>' : '') +
     '</div>';

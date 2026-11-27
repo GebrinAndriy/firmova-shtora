@@ -40,6 +40,13 @@
     const тут = звідки();
     if(тут) localStorage.setItem(ДЕ, JSON.stringify({ t: Date.now(), came: тут }));
   }catch(e){}
+  // How this very visit arrived (not the 30-day memory): for the funnel breakdown.
+  window.fshVia = function(){
+    const u = зАдреси();
+    if(u.fbclid || /^(fb|facebook|ig|instagram|meta)/i.test(u.utm_source || '')) return 'ad';
+    if(u.gclid || /^google/i.test(u.utm_source || '')) return 'google';
+    return звідки() || 'direct';
+  };
   window.fshCame = function(){
     try{
       const d = JSON.parse(localStorage.getItem(ДЕ) || 'null');
@@ -65,13 +72,19 @@
   try{ вКадрі = window.top !== window; }catch(e){ вКадрі = true; }
   window.fshStep = function(step){
     if(вКадрі || КРОКИ.indexOf(step) === -1) return;
+    try{ if(navigator.webdriver) return; }catch(e){}   // automated browsers / bots
     let були = [];
     try{ були = JSON.parse(sessionStorage.getItem(ДЕ) || '[]'); }catch(e){}
     if(!Array.isArray(були)) були = [];
     if(були.indexOf(step) !== -1) return;
     були.push(step);
     try{ sessionStorage.setItem(ДЕ, JSON.stringify(були)); }catch(e){}
-    const body = JSON.stringify({ s: step, src: зРеклами() ? 'ads' : 'other' });
+    const дані = { s: step, src: зРеклами() ? 'ads' : 'other' };
+    if(step === 'visit'){
+      try{ дані.via = window.fshVia ? window.fshVia() : 'direct'; }catch(e){}
+      дані.dev = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '') ? 'm' : 'd';
+    }
+    const body = JSON.stringify(дані);
     try{
       if(navigator.sendBeacon && navigator.sendBeacon('/api/funnel', new Blob([body], { type: 'application/json' }))) return;
     }catch(e){}

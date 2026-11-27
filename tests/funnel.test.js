@@ -116,3 +116,17 @@ test('funnel steps count people: a second lead from one phone and staff leads ar
   assert.equal(after.paidSum - before.paidSum, 900, 'money still counts both orders');
   assert.ok(r.data.paidList.some(x => x.id === 'p-2'), 'the paid list still shows every order');
 });
+
+test('visits are split by how they arrived and by device; junk values are ignored', async () => {
+  const before = (await call({ query: { days: '1' }, auth: true })).data.days.at(-1).other;
+  await call({ method: 'POST', body: { s: 'visit', src: 'other', via: 'google', dev: 'm' }, ip: '10.7.0.1' });
+  await call({ method: 'POST', body: { s: 'visit', src: 'other', via: 'direct', dev: 'd' }, ip: '10.7.0.2' });
+  await call({ method: 'POST', body: { s: 'visit', src: 'other', via: '<x>', dev: 'tv' }, ip: '10.7.0.3' });
+  const after = (await call({ query: { days: '1' }, auth: true })).data.days.at(-1).other;
+  assert.equal(after.visit - before.visit, 3);
+  assert.equal(after.via.google - before.via.google, 1);
+  assert.equal(after.via.direct - before.via.direct, 1);
+  assert.equal(after.dev.m - before.dev.m, 1);
+  assert.equal(after.dev.d - before.dev.d, 1);
+  assert.equal(Object.keys(after.via).length, 6);
+});

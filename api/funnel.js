@@ -10,6 +10,9 @@ import { усіПравки, зПравкою } from '../lib/edits.js';
 // lead list itself, so they are exact.
 export const КРОКИ = ['visit', 'calc', 'size', 'price', 'mode'];
 const ДЖЕРЕЛА = ['ads', 'other'];
+// Visit breakdown: how this visit arrived, and phone or computer.
+export const ШЛЯХИ = ['ad', 'facebook', 'instagram', 'google', 'site', 'direct'];
+const ПРИСТРОЇ = ['m', 'd'];
 const БОТИ = /bot|crawl|spider|slurp|headless|lighthouse|pagespeed|preview|externalhit|python|curl|wget|node-fetch/i;
 const ДНІ = [1, 7, 30, 90];
 // When the counter started: leads made before it have no matching visits, so the
@@ -55,8 +58,18 @@ export default async function handler(req, res) {
     const ключ = 'fn:rl:' + createHash('sha256').update(ip).digest('hex').slice(0, 16);
     try { if ((await bump(ключ, 60)) > 40) return res.status(204).end(); } catch (e) {}
 
-    try { await hincr('funnel:' + деньКиєва(new Date()), дж + ':' + крок); }
+    const день = 'funnel:' + деньКиєва(new Date());
+    try { await hincr(день, дж + ':' + крок); }
     catch (e) { return res.status(204).end(); }
+    if (крок === 'visit') {
+      const шлях = ШЛЯХИ.includes(b.via) ? b.via : null, пр = ПРИСТРОЇ.includes(b.dev) ? b.dev : null;
+      try {
+        await Promise.all([
+          шлях ? hincr(день, 'via:' + дж + ':' + шлях) : null,
+          пр ? hincr(день, 'dev:' + дж + ':' + пр) : null
+        ]);
+      } catch (e) {}
+    }
     if (!стартЗаписано) {
       try { await setOnce(СТАРТ, new Date().toISOString(), 10 * 365 * 86400); стартЗаписано = true; } catch (e) {}
     }
@@ -79,6 +92,10 @@ export default async function handler(req, res) {
     const days = дні.map((d, i) => {
       const c = лічильники[i], row = { day: d, ads: {}, other: {} };
       for (const s of ДЖЕРЕЛА) for (const k of КРОКИ) row[s][k] = Number(c[s + ':' + k]) || 0;
+      for (const s of ДЖЕРЕЛА) {
+        row[s].via = Object.fromEntries(ШЛЯХИ.map(v => [v, Number(c['via:' + s + ':' + v]) || 0]));
+        row[s].dev = Object.fromEntries(ПРИСТРОЇ.map(v => [v, Number(c['dev:' + s + ':' + v]) || 0]));
+      }
       for (const s of ДЖЕРЕЛА) Object.assign(row[s], { lead: 0, paid: 0, paidSum: 0 });
       return row;
     });
